@@ -1,0 +1,12 @@
+# Part 3 브라우저 E2E 전용 의존성
+pytest==9.1.1
+python-dotenv>=1.0.0
+selenium>=4.25.0,<5.0
+allure-pytest>=2.13.0
+pytest-rerunfailures>=16.0
+pytest-html>=4.0.0
+
+
+# Google Sheets 연동
+google-auth>=2.0.0,<3.0.0
+google-api-python-client>=2.0.0,<3.0.0

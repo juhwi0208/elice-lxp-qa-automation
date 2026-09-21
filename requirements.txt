@@ -1,0 +1,5 @@
+# 전체 자동화 환경 설치용. 개별 실행 시 각 Part의 requirements.txt를 사용한다.
+# 설치 : pip install -r requirements.txt
+
+-r part1_api_automation/requirements.txt
+-r part3_e2e/requirements.txt

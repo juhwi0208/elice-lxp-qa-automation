@@ -1,0 +1,42 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+
+# 환경변수 (절대 커밋 금지)
+.env
+
+# JMeter QA 계정 목록 (인증정보 포함, 절대 커밋 금지)
+part2_performance/accounts/
+
+# 테스트 캐시 & 리포트
+.pytest_cache/
+.pytest_cache_user/
+allure-results/
+allure-report/
+.coverage
+htmlcov/
+playwright-report/
+test-results/
+pytest-results/
+part3_e2e/.auth/
+trace.zip
+/artifacts/
+/jmeter.log
+/reports/
+
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db

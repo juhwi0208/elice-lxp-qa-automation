@@ -1,0 +1,3 @@
+# JMeter raw samples and generated dashboards are local/Jenkins artifacts.
+*
+!.gitignore

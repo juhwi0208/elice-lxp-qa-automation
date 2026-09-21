@@ -1,0 +1,463 @@
+pipeline {
+    agent any
+
+    // E2E는 동일 계정과 강의실 데이터를 변경하며 Chrome도 많은 자원을 사용한다.
+    // 같은 Job의 빌드가 겹치면 데이터 충돌과 ChromeDriver 종료가 발생하므로 직렬화한다.
+    options {
+        disableConcurrentBuilds()
+    }
+
+    environment {
+        PYTHONUTF8 = '1'
+        PYTHONIOENCODING = 'utf-8'
+
+        // ==================================================
+        // 1. 공통 QA / E2E 환경
+        // ==================================================
+        LXP_ORG_NAME_SHORT = 'academy'
+        LXP_CLASSROOM_ID = '28f79a10-c14b-4531-9feb-53d9a5c157fc'
+
+        // 현재 E2E 코드에서는 직접 사용하지 않지만
+        // 공통 환경변수로 유지한다.
+        LXP_COURSE_ID = '727'
+
+        // ==================================================
+        // 2. 서비스 주소
+        // ==================================================
+        // 현재 Jenkins에 등록된 Credential ID를 그대로 사용한다.
+        // 추후 Credential ID를 변경하면 이 부분도 함께 수정한다.
+        LXP_ACCOUNTS_BASE_URL = 'https://dev-qatrack-accounts.dev.elicer.io'
+        LXP_ACCOUNT_API_BASE_URL = 'https://dev-qatrack-account-api.dev.elicer.io'
+        LXP_WEB_BASE_URL = 'https://dev-qatrack-web.dev.elicer.io'
+        LXP_API_BASE_URL = 'https://dev-qatrack-classroom-api.dev.elicer.io'
+        LXP_LEGACY_API_BASE_URL = 'https://dev-qatrack-api.dev.elicer.io'
+        LXP_CLASSROOM_API_BASE_URL = 'https://dev-qatrack-classroom-api.dev.elicer.io'
+
+        // ==================================================
+        // 3. Selenium 실행 설정
+        // ==================================================
+        LXP_SELENIUM_BROWSER = 'chrome'
+        // CI에서는 실패 캡처 비용을 제거한다. 필요할 때만 true로 재실행한다.
+        LXP_CAPTURE_FAILURE_SCREENSHOTS = 'false'
+
+        // 비워두면 Selenium Manager가 ChromeDriver를 탐색한다.
+        LXP_CHROMEDRIVER_PATH = ''
+
+        // ==================================================
+        // 4. E2E 공용 테스트 데이터
+        // ==================================================
+        LXP_COURSE_NAME = 'SANDBOX'
+        LXP_TEST_LECTURE_NAME = 'TEST'
+        LXP_PRIMARY_CLASSROOM_NAME = '[QA6_1팀] 최종프로젝트'
+        LXP_PRIMARY_CLASSROOM_MARKER = 'QA6_1팀'
+        LXP_E2E_TEMP_COURSE_NAME = '[QA-AUTO] E2E Course 20260909'
+        LXP_BOARD_ARTICLE_ID = '9555'
+        LXP_BASELINE_BOARD_TITLE = '[API-QA]내용 0자 api 기대값 확인 테스트'
+        LXP_OWN_COMMENT_TEXT = '[QA-AUTO] learner-comment-20260909'
+        LXP_OTHER_COMMENT_TEXT = '[QA-AUTO] educator-comment-20260909'
+        LXP_OTHER_COMMENT_OWNER = 'qa6_tc08'
+        LXP_LEARNER_DISPLAY_NAME = 'bek'
+        LXP_BASELINE_SCHEDULE_TITLE = 'ㅅㄷㄴㅅ'
+        LXP_BASELINE_SCHEDULE_DATE_TEXT = '9/12 토요일'
+        LXP_E2E_MULTI_SCHEDULE_TITLES = '[QA-AUTO] 임시일정-1ebb3c1e|[QA-AUTO] 임시일정-4a340132-수정됨'
+        LXP_E2E_EMPTY_PERIOD_MOVES = '2'
+        LXP_QUIZ_RESPONSE_DELETE_PATH = 'material_quiz/response/delete/'
+        LXP_LECTURE_ID = '1581'
+        LXP_LEARNER_USER_ID = '298'
+        LXP_MATERIAL_QUIZ_ID = '1327'
+        LXP_TEST_QUESTION_COUNT = '1'
+        LXP_EXPECTED_LESSON_COUNT = '1'
+        LXP_EXPECTED_MATERIAL_COUNT = '1'
+        LXP_EXPECTED_TEST_NUMBER_TEXT = '문제수 1개'
+        LXP_TEST_TIME_LIMIT_TEXT = '제한 시간 없음'
+        LXP_E2E_ATTACHMENT_PATH = credentials('lxp-e2e-attachment')
+
+        // 상태 변경 E2E 테스트 실행 허용
+        LXP_ALLOW_MUTATING_REQUESTS = 'true'
+        LXP_ALLOW_IRREVERSIBLE_TEST_RESET = 'true'
+
+        // 주관식 테스트 데이터가 실제로 필요해지면 연결한다.
+        // LXP_TEST_ANSWER = credentials('lxp-test-answer')
+
+        // ==================================================
+        // 5. Discord / 테스트 결과 파일
+        // ==================================================
+        DISCORD_WEBHOOK_URL = credentials('discord-webhook-url')
+
+        PYTEST_RESULT_FILE = 'pytest-results/e2e.xml'
+        PYTEST_RERUN_RESULT_FILE = 'pytest-results/e2e-rerun.json'
+    }
+
+    stages {
+
+        // ==================================================
+        // Checkout
+        // ==================================================
+        stage('Checkout') {
+            steps {
+                echo '[E2E] Checking out source code'
+
+                checkout scm
+            }
+        }
+
+        // ==================================================
+        // Python / Dependency Setup
+        // ==================================================
+        stage('Setup Python') {
+            steps {
+                echo '[E2E] Preparing Python environment'
+
+                sh '''
+                    set -e
+
+                    if [ ! -d ".venv" ]; then
+                        echo "[E2E] Creating virtual environment"
+                        python3 -m venv .venv
+                    else
+                        echo "[E2E] Reusing existing virtual environment"
+                    fi
+
+                    echo "[E2E] Upgrading pip"
+                    .venv/bin/python -m pip install --upgrade pip
+
+                    echo "[E2E] Installing E2E dependencies"
+                    .venv/bin/python -m pip install -r part3_e2e/requirements.txt
+
+                    echo "[OK] Python environment setup completed"
+                '''
+            }
+        }
+
+        // ==================================================
+        // E2E Environment Validation
+        // ==================================================
+        stage('Validate E2E Environment') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'lxp-learner-account',
+                        usernameVariable: 'LXP_LEARNER_EMAIL',
+                        passwordVariable: 'LXP_LEARNER_PASSWORD'
+                    ),
+                    usernamePassword(
+                        credentialsId: 'lxp-educator-account',
+                        usernameVariable: 'LXP_EDUCATOR_EMAIL',
+                        passwordVariable: 'LXP_EDUCATOR_PASSWORD'
+                    )
+                ]) {
+                    sh '''
+                        set -e
+
+                        echo "========================================"
+                        echo "[E2E] Validating required environment"
+                        echo "========================================"
+
+                        required_vars="
+                        LXP_ORG_NAME_SHORT
+                        LXP_CLASSROOM_ID
+                        LXP_ACCOUNTS_BASE_URL
+                        LXP_ACCOUNT_API_BASE_URL
+                        LXP_WEB_BASE_URL
+                        LXP_LEGACY_API_BASE_URL
+                        LXP_SELENIUM_BROWSER
+                        LXP_COURSE_NAME
+                        LXP_TEST_LECTURE_NAME
+                        LXP_PRIMARY_CLASSROOM_NAME
+                        LXP_PRIMARY_CLASSROOM_MARKER
+                        LXP_E2E_TEMP_COURSE_NAME
+                        LXP_BOARD_ARTICLE_ID
+                        LXP_BASELINE_BOARD_TITLE
+                        LXP_OWN_COMMENT_TEXT
+                        LXP_OTHER_COMMENT_TEXT
+                        LXP_OTHER_COMMENT_OWNER
+                        LXP_LEARNER_DISPLAY_NAME
+                        LXP_BASELINE_SCHEDULE_TITLE
+                        LXP_BASELINE_SCHEDULE_DATE_TEXT
+                        LXP_E2E_MULTI_SCHEDULE_TITLES
+                        LXP_E2E_EMPTY_PERIOD_MOVES
+                        LXP_QUIZ_RESPONSE_DELETE_PATH
+                        LXP_LECTURE_ID
+                        LXP_LEARNER_USER_ID
+                        LXP_MATERIAL_QUIZ_ID
+                        LXP_TEST_QUESTION_COUNT
+                        LXP_EXPECTED_LESSON_COUNT
+                        LXP_EXPECTED_MATERIAL_COUNT
+                        LXP_EXPECTED_TEST_NUMBER_TEXT
+                        LXP_TEST_TIME_LIMIT_TEXT
+                        LXP_E2E_ATTACHMENT_PATH
+                        LXP_LEARNER_EMAIL
+                        LXP_LEARNER_PASSWORD
+                        LXP_EDUCATOR_EMAIL
+                        LXP_EDUCATOR_PASSWORD
+                        "
+
+                        missing_vars=""
+
+                        for var in $required_vars; do
+                            if [ -z "$(printenv "$var")" ]; then
+                                echo "[ERROR] Missing required variable: $var"
+                                missing_vars="$missing_vars $var"
+                            else
+                                echo "[OK] $var"
+                            fi
+                        done
+
+                        if [ -n "$missing_vars" ]; then
+                            echo "========================================"
+                            echo "[ERROR] E2E environment validation failed"
+                            echo "[ERROR] Missing variables:$missing_vars"
+                            echo "========================================"
+                            exit 1
+                        fi
+
+                        echo "========================================"
+                        echo "[OK] All required E2E environment variables are configured"
+                        echo "========================================"
+                    '''
+                }
+            }
+        }
+
+        // ==================================================
+        // Google Sheets / Jira Connection Validation
+        // ==================================================
+        stage('Validate QA Integrations') {
+            steps {
+                withCredentials([
+                    file(
+                        credentialsId: 'google-sheets-service-account',
+                        variable: 'GOOGLE_APPLICATION_CREDENTIALS'
+                    ),
+                    string(
+                        credentialsId: 'google-spreadsheet-id',
+                        variable: 'GOOGLE_SPREADSHEET_ID'
+                    ),
+                    string(
+                        credentialsId: 'jira-base-url',
+                        variable: 'JIRA_BASE_URL'
+                    ),
+                    string(
+                        credentialsId: 'jira-user-email',
+                        variable: 'JIRA_USER_EMAIL'
+                    ),
+                    string(
+                        credentialsId: 'jira-api-token',
+                        variable: 'JIRA_API_TOKEN'
+                    ),
+                    string(
+                        credentialsId: 'jira-project-key',
+                        variable: 'JIRA_PROJECT_KEY'
+                    )
+                ]) {
+                    sh '''
+                        set -e
+                        .venv/bin/python scripts/test_google_sheets_connection.py
+                        .venv/bin/python scripts/test_jira_connection.py
+                    '''
+                }
+            }
+        }
+
+        // ==================================================
+        // Run E2E Tests
+        // ==================================================
+        stage('Run E2E Tests') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'lxp-learner-account',
+                        usernameVariable: 'LXP_LEARNER_EMAIL',
+                        passwordVariable: 'LXP_LEARNER_PASSWORD'
+                    ),
+                    usernamePassword(
+                        credentialsId: 'lxp-educator-account',
+                        usernameVariable: 'LXP_EDUCATOR_EMAIL',
+                        passwordVariable: 'LXP_EDUCATOR_PASSWORD'
+                    )
+                ]) {
+                    sh '''
+                        set -e
+
+                        echo "========================================"
+                        echo "[E2E] Starting Selenium E2E tests"
+                        echo "========================================"
+
+                        mkdir -p pytest-results
+                        mkdir -p allure-results/e2e
+                        rm -f artifacts/tc-results/tc_results.jsonl
+                        rm -rf artifacts/screenshots
+                        mkdir -p artifacts/tc-results artifacts/screenshots
+
+                        export TZ=Asia/Seoul
+                        export LXP_E2E_SCHEDULE_START="$(date -d 'tomorrow 10:00' --iso-8601=seconds)"
+                        export LXP_E2E_SCHEDULE_END="$(date -d 'tomorrow 11:00' --iso-8601=seconds)"
+                        export LXP_E2E_ALL_DAY_DATE="$(date -d 'tomorrow 00:00' --iso-8601=seconds)"
+                        export LXP_E2E_RECURRING_UNTIL="$(date -d '+7 days 10:00' --iso-8601=seconds)"
+
+                        .venv/bin/python -m pytest part3_e2e/tests/e2e_integration \
+                            -k independent \
+                            --alluredir=allure-results/e2e \
+                            --clean-alluredir \
+                            --junitxml=pytest-results/e2e.xml
+
+                        echo "========================================"
+                        echo "[OK] E2E test execution completed"
+                        echo "========================================"
+                    '''
+                }
+            }
+        }
+    }
+
+    // ==================================================
+    // Post Processing
+    // ==================================================
+    post {
+
+        always {
+
+            // ----------------------------------------------
+            // E2E TC Result Sync + Jira DRY RUN
+            // ----------------------------------------------
+            script {
+                echo '[E2E] Syncing TC results and validating Jira candidates'
+
+                def instrumentationStatus = sh(
+                    script: '''
+                        .venv/bin/python scripts/validate_e2e_tc_instrumentation.py
+                    ''',
+                    returnStatus: true
+                )
+
+                if (instrumentationStatus != 0) {
+                    echo (
+                        '[WARN] E2E TCResultCollector instrumentation is incomplete. ' +
+                        'Sheet sync and Jira dry-run were skipped.'
+                    )
+                } else {
+                    withCredentials([
+                        file(
+                            credentialsId: 'google-sheets-service-account',
+                            variable: 'GOOGLE_APPLICATION_CREDENTIALS'
+                        ),
+                        string(
+                            credentialsId: 'google-spreadsheet-id',
+                            variable: 'GOOGLE_SPREADSHEET_ID'
+                        )
+                    ]) {
+                        def tcSyncStatus = sh(
+                            script: '''
+                                .venv/bin/python \
+                                    scripts/update_e2e_tc_results.py \
+                                    --result-file artifacts/tc-results/tc_results.jsonl \
+                                    --apply
+                            ''',
+                            returnStatus: true
+                        )
+
+                        if (tcSyncStatus == 0) {
+                            withCredentials([
+                                string(
+                                    credentialsId: 'jira-base-url',
+                                    variable: 'JIRA_BASE_URL'
+                                ),
+                                string(
+                                    credentialsId: 'jira-user-email',
+                                    variable: 'JIRA_USER_EMAIL'
+                                ),
+                                string(
+                                    credentialsId: 'jira-api-token',
+                                    variable: 'JIRA_API_TOKEN'
+                                ),
+                                string(
+                                    credentialsId: 'jira-project-key',
+                                    variable: 'JIRA_PROJECT_KEY'
+                                )
+                            ]) {
+                                def jiraDryRunStatus = sh(
+                                    script: '''
+                                        .venv/bin/python \
+                                            scripts/create_e2e_jira_issues.py \
+                                            --result-file artifacts/tc-results/tc_results.jsonl
+                                    ''',
+                                    returnStatus: true
+                                )
+                                if (jiraDryRunStatus != 0) {
+                                    echo '[WARN] E2E Jira dry-run validation failed.'
+                                }
+                            }
+                        } else {
+                            echo (
+                                '[WARN] E2E Jira dry-run skipped because ' +
+                                'TC result collection/sync validation failed.'
+                            )
+                        }
+                    }
+                }
+            }
+
+            // ----------------------------------------------
+            // Allure Report
+            // ----------------------------------------------
+            script {
+                echo '[E2E] Publishing Allure report'
+
+                allure([
+                    includeProperties: false,
+                    jdk: '',
+                    results: [[path: 'allure-results/e2e']]
+                ])
+            }
+
+            // ----------------------------------------------
+            // Failure Screenshots
+            // ----------------------------------------------
+            script {
+                echo '[E2E] Archiving Selenium screenshots'
+
+                archiveArtifacts(
+                    artifacts: 'artifacts/screenshots/**/*.png',
+                    allowEmptyArchive: true
+                )
+            }
+
+            // ----------------------------------------------
+            // Discord Notification
+            // ----------------------------------------------
+            script {
+                echo '[E2E] Sending Discord notification'
+
+                withEnv([
+                    'TEST_TYPE=E2E',
+                    "BUILD_RESULT=${currentBuild.currentResult}",
+                    "ALLURE_REPORT_URL=${env.BUILD_URL}allure/",
+                    'PYTEST_RESULT_FILE=pytest-results/e2e.xml',
+                    'PYTEST_RERUN_RESULT_FILE=pytest-results/e2e-rerun.json'
+                ]) {
+                    sh '''
+                        if [ -f ".venv/bin/python" ]; then
+                            .venv/bin/python discord_notify.py
+                        else
+                            echo "[WARN] Python virtual environment not found."
+                            echo "[WARN] Discord notification was skipped."
+                        fi
+                    '''
+                }
+            }
+        }
+
+        success {
+            echo '========================================'
+            echo '[SUCCESS] E2E Jenkins pipeline completed'
+            echo '========================================'
+        }
+
+        failure {
+            echo '========================================'
+            echo '[FAILURE] E2E Jenkins pipeline failed'
+            echo 'Check the failed stage and logs above.'
+            echo '========================================'
+        }
+    }
+}

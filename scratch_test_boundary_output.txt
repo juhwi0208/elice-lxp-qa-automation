@@ -1,0 +1,11 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.3, pytest-9.1.1, pluggy-1.6.0
+cachedir: .pytest_cache_user
+rootdir: C:\Users\Bell\Desktop\QA-Final
+configfile: pytest.ini
+plugins: allure-pytest-2.16.0, anyio-4.12.0, html-4.2.0, metadata-3.1.1, xdist-3.8.0
+collected 22 items
+
+part1_api_automation\tests\class_schedule\test_boundary.py ....s...........s..s.s
+
+======================= 18 passed, 4 skipped in 10.63s ========================

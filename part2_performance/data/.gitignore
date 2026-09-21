@@ -1,0 +1,3 @@
+# 실제 부하 테스트 계정 CSV에는 비밀번호가 있으므로 Git에 커밋하지 않는다.
+*.csv
+!accounts.example.csv

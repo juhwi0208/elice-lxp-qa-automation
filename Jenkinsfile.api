@@ -1,0 +1,315 @@
+pipeline {
+    agent any
+
+    environment {
+        PYTHONUTF8 = '1'
+        PYTHONIOENCODING = 'utf-8'
+
+        // 공통 QA 환경
+        LXP_ORG_NAME_SHORT = credentials('lxp-org-name-short')
+        LXP_CLASSROOM_ID = credentials('lxp-classroom-id')
+        LXP_COURSE_ID = credentials('lxp-course-id')
+
+        // API 서비스 주소
+        LXP_API_BASE_URL = credentials('lxp-api-base-url')
+        LXP_ACCOUNT_API_BASE_URL = credentials('lxp-account-api-base-url')
+        LXP_CLASSROOM_API_BASE_URL = credentials('lxp-classroom-api-base-url')
+        LXP_COURSE_API_BASE_URL = credentials('lxp-course-api-base-url')
+        LXP_DASHBOARD_API_BASE_URL = credentials('lxp-dashboard-api-base-url')
+
+        // 학습과목 / 수업자료 테스트 데이터
+        LXP_COURSE_NAME = credentials('lxp-course-name')
+        LXP_TEST_LECTURE_NAME = 'TEST'
+        LXP_MATERIAL_QUIZ_ID = credentials('lxp-material-quiz-id')
+        LXP_LEARNER_USER_ID = credentials('lxp-learner-user-id')
+        LXP_LECTURE_ID = credentials('lxp-lecture-id')
+        LXP_LECTURE_PAGE_ID = credentials('lxp-lecture-page-id')
+        LXP_LECTURE_LOCATOR_TYPE = credentials('lxp-lecture-locator-type')
+
+        // 상태 변경 테스트 / 게시판 cleanup
+        LXP_ALLOW_MUTATING_REQUESTS = 'true'
+        LXP_BOARD_ARTICLE_DELETE_PATH = credentials('lxp-board-article-delete-path')
+
+        // 되돌리기 어려운 테스트 초기화는 기본 차단
+        LXP_ALLOW_IRREVERSIBLE_TEST_RESET = 'false'
+
+        // 아래 값들은 Jenkins Credential 등록 후 필요 시 추가
+        LXP_PRIVATE_COURSE_ID = credentials('lxp-private-course-id')
+        LXP_QUIZ_ANSWER = credentials('lxp-quiz-answer')
+        LXP_TC91_MATERIAL_QUIZ_ID = credentials('lxp-tc91-material-quiz-id')
+        LXP_COURSE_EDIT_PATCH_JSON = credentials('lxp-course-edit-patch-json')
+        LXP_LECTURE_EDIT_PATCH_JSON = credentials('lxp-lecture-edit-patch-json')
+
+        // Discord / 결과 파일
+        DISCORD_WEBHOOK_URL = credentials('discord-webhook-url')
+        PYTEST_RESULT_FILE = 'pytest-results/api.xml'
+        PYTEST_RERUN_RESULT_FILE = 'pytest-results/api-rerun.json'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Setup Python') {
+            steps {
+                sh '''
+                    if [ ! -d ".venv" ]; then
+                        python3 -m venv .venv
+                    fi
+
+                    .venv/bin/python -m pip install --upgrade pip
+                    .venv/bin/python -m pip install -r part1_api_automation/requirements.txt
+                '''
+            }
+        }
+        
+        stage('Validate Google Sheets Connection') {
+            steps {
+                echo '[API] Validating Google Sheets connection'
+
+                withCredentials([
+                    file(
+                        credentialsId: 'google-sheets-service-account',
+                        variable: 'GOOGLE_APPLICATION_CREDENTIALS'
+                    ),
+                    string(
+                        credentialsId: 'google-spreadsheet-id',
+                        variable: 'GOOGLE_SPREADSHEET_ID'
+                    )
+                ]) {
+                    sh '''
+                        set -e
+
+                        echo "========================================"
+                        echo "[API] Testing Google Sheets API connection"
+                        echo "========================================"
+
+                        .venv/bin/python scripts/test_google_sheets_connection.py
+
+                        echo "========================================"
+                        echo "[OK] Google Sheets connection validation completed"
+                        echo "========================================"
+                    '''
+                }
+            }
+        }
+
+        stage('Validate Jira Connection') {
+            steps {
+                echo '[API] Validating Jira connection'
+
+                withCredentials([
+                    string(
+                        credentialsId: 'jira-base-url',
+                        variable: 'JIRA_BASE_URL'
+                    ),
+                    string(
+                        credentialsId: 'jira-user-email',
+                        variable: 'JIRA_USER_EMAIL'
+                    ),
+                    string(
+                        credentialsId: 'jira-api-token',
+                        variable: 'JIRA_API_TOKEN'
+                    ),
+                    string(
+                        credentialsId: 'jira-project-key',
+                        variable: 'JIRA_PROJECT_KEY'
+                    )
+                ]) {
+                    sh '''
+                        set -e
+
+                        echo "========================================"
+                        echo "[API] Testing Jira API connection"
+                        echo "========================================"
+
+                        .venv/bin/python scripts/test_jira_connection.py
+
+                        echo "========================================"
+                        echo "[API] Validating all Jira issue fields"
+                        echo "========================================"
+
+                        .venv/bin/python scripts/validate_jira_issue_fields.py
+
+                        echo "========================================"
+                        echo "[OK] Jira connection and issue field validation completed"
+                        echo "========================================"
+                    '''
+                }
+            }
+        }
+
+        stage('Run API Tests') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'lxp-learner-account',
+                        usernameVariable: 'LXP_LEARNER_EMAIL',
+                        passwordVariable: 'LXP_LEARNER_PASSWORD'
+                    ),
+                    usernamePassword(
+                        credentialsId: 'lxp-educator-account',
+                        usernameVariable: 'LXP_EDUCATOR_EMAIL',
+                        passwordVariable: 'LXP_EDUCATOR_PASSWORD'
+                    ),
+                    usernamePassword(
+                        credentialsId: 'lxp-other-learner-account',
+                        usernameVariable: 'LXP_OTHER_LEARNER_EMAIL',
+                        passwordVariable: 'LXP_OTHER_LEARNER_PASSWORD'
+                    )
+                ]) {
+                    sh '''
+                        mkdir -p pytest-results
+
+                        .venv/bin/python -m pytest part1_api_automation/tests \
+                            --reruns 1 \
+                            --reruns-delay 2 \
+                            --alluredir=allure-results/api \
+                            --clean-alluredir \
+                            --junitxml=pytest-results/api.xml
+                    '''
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            script {
+                echo '[API] Inspecting Allure raw results'
+
+                def allureInspectStatus = sh(
+                    script: '''
+                        .venv/bin/python \
+                            scripts/inspect_allure_results.py \
+                            --results-dir allure-results/api \
+                            --show-failures
+                    ''',
+                    returnStatus: true
+                )
+
+                if (allureInspectStatus != 0) {
+                    echo (
+                        '[WARN] Allure raw result inspection '
+                        + 'failed. Check the log above.'
+                    )
+                }
+
+                echo '[API] Validating Allure ↔ TC mapping'
+
+                withCredentials([
+                    file(
+                        credentialsId: 'google-sheets-service-account',
+                        variable: 'GOOGLE_APPLICATION_CREDENTIALS'
+                    ),
+                    string(
+                        credentialsId: 'google-spreadsheet-id',
+                        variable: 'GOOGLE_SPREADSHEET_ID'
+                    )
+                ]) {
+                    def tcMappingStatus = sh(
+                        script: '''
+                            .venv/bin/python \
+                                scripts/validate_allure_tc_mapping.py \
+                                --results-dir allure-results/api
+                        ''',
+                        returnStatus: true
+                    )
+
+                    if (tcMappingStatus != 0) {
+                        echo (
+                            '[WARN] Allure ↔ Google Sheets '
+                            + 'mapping validation failed. '
+                            + 'No spreadsheet data was modified.'
+                        )
+                    }
+
+                    echo '[API] Updating Google Sheet TC results'
+
+                    def tcSyncStatus = sh(
+                        script: '''
+                            .venv/bin/python \
+                                scripts/update_api_tc_results.py \
+                                --results-dir allure-results/api \
+                                --apply
+                        ''',
+                        returnStatus: true
+                    )
+
+                    if (tcSyncStatus != 0) {
+                        echo (
+                            '[WARN] API TC result sync '
+                            + 'reported a validation problem.'
+                        )
+                    }
+
+                    if (tcMappingStatus == 0 && tcSyncStatus == 0) {
+                        echo '[API] Creating Jira issues for failed API TC results'
+
+                        withCredentials([
+                            string(
+                                credentialsId: 'jira-base-url',
+                                variable: 'JIRA_BASE_URL'
+                            ),
+                            string(
+                                credentialsId: 'jira-user-email',
+                                variable: 'JIRA_USER_EMAIL'
+                            ),
+                            string(
+                                credentialsId: 'jira-api-token',
+                                variable: 'JIRA_API_TOKEN'
+                            ),
+                            string(
+                                credentialsId: 'jira-project-key',
+                                variable: 'JIRA_PROJECT_KEY'
+                            )
+                        ]) {
+                            def jiraApplyStatus = sh(
+                                script: '''
+                                    .venv/bin/python \
+                                        scripts/create_api_jira_issues.py \
+                                        --results-dir allure-results/api \
+                                        --apply
+                                ''',
+                                returnStatus: true
+                            )
+
+                            if (jiraApplyStatus != 0) {
+                                echo (
+                                    '[WARN] Jira issue creation failed. '
+                                    + 'Check the log above.'
+                                )
+                            }
+                        }
+                    } else {
+                        echo (
+                            '[WARN] API Jira issue creation skipped because '
+                            + 'TC mapping validation or Sheet sync failed.'
+                        )
+                    }
+                }
+            }
+
+            allure([
+                includeProperties: false,
+                jdk: '',
+                results: [[path: 'allure-results/api']]
+            ])
+
+            script {
+                env.TEST_TYPE = 'API'
+                env.BUILD_RESULT = currentBuild.currentResult
+                env.ALLURE_REPORT_URL = "${env.BUILD_URL}allure/"
+                env.PYTEST_RESULT_FILE = 'pytest-results/api.xml'
+                env.PYTEST_RERUN_RESULT_FILE = 'pytest-results/api-rerun.json'
+
+                sh '''
+                    .venv/bin/python discord_notify.py
+                '''
+            }
+        }
+    }
+}
