@@ -8,9 +8,9 @@ from urllib.parse import quote
 
 import pytest
 
-from part1_api_automation.tests.board.helpers import default_payload, multipart
-from part1_api_automation.utils import api_client
-from part1_api_automation.utils.response import (
+from api.tests.board.helpers import default_payload, multipart
+from api.utils import api_client
+from api.utils.response import (
     assert_api_success,
     assert_error_response,
     logic_error,

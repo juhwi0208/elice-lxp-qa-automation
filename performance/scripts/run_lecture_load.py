@@ -11,7 +11,7 @@ import xml.etree.ElementTree as ET
 from datetime import datetime
 from pathlib import Path
 
-from part2_performance.scripts.summarize_results import summarize_report
+from performance.scripts.summarize_results import summarize_report
 
 APPROVED_API_HOST = "dev-qatrack-api.dev.elicer.io"
 APPROVED_ACCOUNT_HOST = "dev-qatrack-account-api.dev.elicer.io"
@@ -226,11 +226,17 @@ def _validate_jmx_structure(jmx_path: Path) -> None:
 
     # 승인된 Dev 대상이 JMX에서 변경되지 않았는지 sampler 단위로 검증한다.
     samplers = {
-        node.attrib.get("testname"): node for node in root.findall(".//HTTPSamplerProxy")
+        node.attrib.get("testname"): node
+        for node in root.findall(".//HTTPSamplerProxy")
     }
 
     def require_sampler_target(
-        label: str, *, host: str, path: str, argument_name: str | None = None, argument_value: str | None = None
+        label: str,
+        *,
+        host: str,
+        path: str,
+        argument_name: str | None = None,
+        argument_value: str | None = None,
     ) -> None:
         sampler = samplers.get(label)
         if sampler is None:
@@ -260,9 +266,11 @@ def _validate_jmx_structure(jmx_path: Path) -> None:
         "00_AUTH_login", host=APPROVED_ACCOUNT_HOST, path="/login/pw"
     )
     require_sampler_target(
-        "01_GET_course_info", host=APPROVED_API_HOST,
+        "01_GET_course_info",
+        host=APPROVED_API_HOST,
         path=f"/org/{APPROVED_ORG}/course/get/",
-        argument_name="course_id", argument_value=str(APPROVED_COURSE_ID),
+        argument_name="course_id",
+        argument_value=str(APPROVED_COURSE_ID),
     )
     for label, path in [
         ("02_POST_test_enter", f"/org/{APPROVED_ORG}/user/lecture/test/enter/"),
@@ -271,8 +279,11 @@ def _validate_jmx_structure(jmx_path: Path) -> None:
         ("05_POST_test_reset", f"/org/{APPROVED_ORG}/lecture/test/reset/by_self/"),
     ]:
         require_sampler_target(
-            label, host=APPROVED_API_HOST, path=path,
-            argument_name="lecture_id", argument_value=str(APPROVED_LECTURE_ID),
+            label,
+            host=APPROVED_API_HOST,
+            path=path,
+            argument_name="lecture_id",
+            argument_value=str(APPROVED_LECTURE_ID),
         )
 
     text = jmx_path.read_text(encoding="utf-8")
@@ -298,7 +309,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--accounts-csv", type=Path, required=True)
     parser.add_argument("--jmeter", default=os.getenv("JMETER_BIN", "jmeter"))
     parser.add_argument(
-        "--results-root", type=Path, default=Path("part2_performance/results")
+        "--results-root", type=Path, default=Path("performance/results")
     )
     parser.add_argument(
         "--confirm-approved-window",
@@ -354,7 +365,7 @@ def main() -> int:
     if not jmeter_bin:
         raise SystemExit(f"JMeter 실행 파일을 찾을 수 없습니다: {args.jmeter}")
 
-    jmx_path = Path("part2_performance/jmeter/lecture_test_cycle.jmx").resolve()
+    jmx_path = Path("performance/jmeter/lecture_test_cycle.jmx").resolve()
     if not jmx_path.is_file():
         raise SystemExit(f"JMX 파일이 없습니다: {jmx_path}")
     _validate_jmx_structure(jmx_path)

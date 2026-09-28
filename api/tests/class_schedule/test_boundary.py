@@ -1,8 +1,8 @@
-from part1_api_automation.utils.config import is_mutating_test_allowed
+from api.utils.config import is_mutating_test_allowed
 from datetime import UTC, datetime, timedelta
 import pytest
-from part1_api_automation.utils import api_client
-from part1_api_automation.utils.response import (
+from api.utils import api_client
+from api.utils.response import (
     assert_bad_request,
     assert_conflict,
     assert_forbidden,
@@ -14,7 +14,9 @@ from part1_api_automation.utils.response import (
 
 @pytest.mark.read_only
 @pytest.mark.boundary
-def test_unauthenticated_request_is_rejected(api_base_url, org_name_short, classroom_id):
+def test_unauthenticated_request_is_rejected(
+    api_base_url, org_name_short, classroom_id
+):
     """[CS-012] 인증 토큰 없이 GET /schedule 호출 시 인증 에러가 반환되는지 확인한다."""
     end_at = datetime.now(UTC)
     start_at = end_at - timedelta(days=30)
@@ -22,7 +24,9 @@ def test_unauthenticated_request_is_rejected(api_base_url, org_name_short, class
     url = f"{api_base_url}/schedule"
     params = {
         "classroom_id": classroom_id,
-        "dt_start_ge": start_at.isoformat(timespec="milliseconds").replace("+00:00", "Z"),
+        "dt_start_ge": start_at.isoformat(timespec="milliseconds").replace(
+            "+00:00", "Z"
+        ),
         "dt_start_le": end_at.isoformat(timespec="milliseconds").replace("+00:00", "Z"),
         "count": 5,
     }
@@ -36,7 +40,9 @@ def test_unauthenticated_request_is_rejected(api_base_url, org_name_short, class
 
 @pytest.mark.read_only
 @pytest.mark.boundary
-def test_schedule_list_rejects_invalid_token(api_base_url, org_name_short, classroom_id):
+def test_schedule_list_rejects_invalid_token(
+    api_base_url, org_name_short, classroom_id
+):
     """[CS-012-보조] 유효하지 않은 인증 토큰으로 GET /schedule 호출 시 거부되는지 확인한다."""
     end_at = datetime.now(UTC)
     start_at = end_at - timedelta(days=30)
@@ -44,7 +50,9 @@ def test_schedule_list_rejects_invalid_token(api_base_url, org_name_short, class
     url = f"{api_base_url}/schedule"
     params = {
         "classroom_id": classroom_id,
-        "dt_start_ge": start_at.isoformat(timespec="milliseconds").replace("+00:00", "Z"),
+        "dt_start_ge": start_at.isoformat(timespec="milliseconds").replace(
+            "+00:00", "Z"
+        ),
         "dt_start_le": end_at.isoformat(timespec="milliseconds").replace("+00:00", "Z"),
         "count": 5,
     }
@@ -59,7 +67,9 @@ def test_schedule_list_rejects_invalid_token(api_base_url, org_name_short, class
     assert response.status_code in (401, 403, 409), (
         f"유효하지 않은 토큰 요청인데 거부되지 않았습니다: {response.status_code}"
     )
-    assert response.status_code != 500, "위조 토큰 요청 시 서버 500 오류가 발생하면 안 됩니다."
+    assert response.status_code != 500, (
+        "위조 토큰 요청 시 서버 500 오류가 발생하면 안 됩니다."
+    )
 
 
 @pytest.mark.read_only
@@ -72,7 +82,9 @@ def test_invalid_classroom_id_returns_fail(api_base_url, learner_headers):
     url = f"{api_base_url}/schedule"
     params = {
         "classroom_id": "invalid-uuid-format-or-fake-id",
-        "dt_start_ge": start_at.isoformat(timespec="milliseconds").replace("+00:00", "Z"),
+        "dt_start_ge": start_at.isoformat(timespec="milliseconds").replace(
+            "+00:00", "Z"
+        ),
         "dt_start_le": end_at.isoformat(timespec="milliseconds").replace("+00:00", "Z"),
         "count": 5,
     }
@@ -97,8 +109,12 @@ def test_schedule_list_requires_classroom_id(
         headers=learner_headers,
         params={
             # classroom_id는 의도적으로 넣지 않는다.
-            "dt_start_ge": start_at.isoformat(timespec="milliseconds").replace("+00:00", "Z"),
-            "dt_start_le": end_at.isoformat(timespec="milliseconds").replace("+00:00", "Z"),
+            "dt_start_ge": start_at.isoformat(timespec="milliseconds").replace(
+                "+00:00", "Z"
+            ),
+            "dt_start_le": end_at.isoformat(timespec="milliseconds").replace(
+                "+00:00", "Z"
+            ),
             "count": 10,
         },
     )
@@ -126,7 +142,9 @@ def test_schedule_list_requires_start_datetime(
         headers=learner_headers,
         params={
             "classroom_id": classroom_id,
-            "dt_start_le": end_at.isoformat(timespec="milliseconds").replace("+00:00", "Z"),
+            "dt_start_le": end_at.isoformat(timespec="milliseconds").replace(
+                "+00:00", "Z"
+            ),
             "count": 10,
         },
     )
@@ -153,7 +171,9 @@ def test_schedule_list_requires_end_datetime(
         headers=learner_headers,
         params={
             "classroom_id": classroom_id,
-            "dt_start_ge": start_at.isoformat(timespec="milliseconds").replace("+00:00", "Z"),
+            "dt_start_ge": start_at.isoformat(timespec="milliseconds").replace(
+                "+00:00", "Z"
+            ),
             "count": 10,
         },
     )
@@ -181,8 +201,12 @@ def test_schedule_list_requires_count(
         headers=learner_headers,
         params={
             "classroom_id": classroom_id,
-            "dt_start_ge": start_at.isoformat(timespec="milliseconds").replace("+00:00", "Z"),
-            "dt_start_le": end_at.isoformat(timespec="milliseconds").replace("+00:00", "Z"),
+            "dt_start_ge": start_at.isoformat(timespec="milliseconds").replace(
+                "+00:00", "Z"
+            ),
+            "dt_start_le": end_at.isoformat(timespec="milliseconds").replace(
+                "+00:00", "Z"
+            ),
             # count 파라미터를 의도적으로 제외
         },
     )
@@ -209,8 +233,12 @@ def test_schedule_list_missing_count_prevents_500_error(
         headers=learner_headers,
         params={
             "classroom_id": classroom_id,
-            "dt_start_ge": start_at.isoformat(timespec="milliseconds").replace("+00:00", "Z"),
-            "dt_start_le": end_at.isoformat(timespec="milliseconds").replace("+00:00", "Z"),
+            "dt_start_ge": start_at.isoformat(timespec="milliseconds").replace(
+                "+00:00", "Z"
+            ),
+            "dt_start_le": end_at.isoformat(timespec="milliseconds").replace(
+                "+00:00", "Z"
+            ),
             # count 파라미터를 의도적으로 제외
         },
     )
@@ -251,7 +279,9 @@ def test_learner_cannot_create_schedule(
         json={
             "classroom_id": classroom_id,
             "summary": "[QA-AUTO] learner-permission-check",
-            "dt_start": start_at.isoformat(timespec="milliseconds").replace("+00:00", "Z"),
+            "dt_start": start_at.isoformat(timespec="milliseconds").replace(
+                "+00:00", "Z"
+            ),
             "dt_end": end_at.isoformat(timespec="milliseconds").replace("+00:00", "Z"),
         },
         confirmed=True,
@@ -276,7 +306,9 @@ def test_schedule_list_rejects_invalid_datetime_format(
         params={
             "classroom_id": classroom_id,
             "dt_start_ge": "not-a-valid-datetime",
-            "dt_start_le": end_at.isoformat(timespec="milliseconds").replace("+00:00", "Z"),
+            "dt_start_le": end_at.isoformat(timespec="milliseconds").replace(
+                "+00:00", "Z"
+            ),
             "count": 10,
         },
     )
@@ -308,7 +340,9 @@ def test_missing_schedule_detail_is_not_returned(
         "존재하지 않는 일정 상세 조회에 정상 응답이 왔거나 예상 밖 상태 코드입니다: "
         f"{response.status_code}"
     )
-    assert response.status_code != 500, "존재하지 않는 리소스 조회로 서버 500이 발생하면 안 됩니다."
+    assert response.status_code != 500, (
+        "존재하지 않는 리소스 조회로 서버 500이 발생하면 안 됩니다."
+    )
 
 
 @pytest.mark.read_only
@@ -375,7 +409,9 @@ def test_schedule_count_requires_start_datetime(
         params={
             "classroom_id": classroom_id,
             # dt_start_ge는 의도적으로 넣지 않는다.
-            "dt_start_le": end_at.isoformat(timespec="milliseconds").replace("+00:00", "Z"),
+            "dt_start_le": end_at.isoformat(timespec="milliseconds").replace(
+                "+00:00", "Z"
+            ),
         },
     )
 
@@ -461,8 +497,12 @@ def test_schedule_list_handles_reversed_date_range(
         headers=learner_headers,
         params={
             "classroom_id": classroom_id,
-            "dt_start_ge": later.isoformat(timespec="milliseconds").replace("+00:00", "Z"),
-            "dt_start_le": earlier.isoformat(timespec="milliseconds").replace("+00:00", "Z"),
+            "dt_start_ge": later.isoformat(timespec="milliseconds").replace(
+                "+00:00", "Z"
+            ),
+            "dt_start_le": earlier.isoformat(timespec="milliseconds").replace(
+                "+00:00", "Z"
+            ),
             "count": 10,
         },
     )
@@ -479,8 +519,7 @@ def test_schedule_count_allows_same_start_and_end(
 ):
     """[CS-022] 시작·종료가 같은 시각이어도 count는 0 이상 정수로 반환되어야 한다."""
     point_at = datetime.now(UTC).replace(microsecond=0)
-    point_text = point_at.isoformat(
-        timespec="milliseconds").replace("+00:00", "Z")
+    point_text = point_at.isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
     response = api_client.get(
         url=f"{api_base_url}/schedule/count",
@@ -493,8 +532,7 @@ def test_schedule_count_allows_same_start_and_end(
     )
 
     assert response.status_code == 200, (
-        "시작·종료가 같은 시각인 count 조회가 실패했습니다: "
-        f"{response.status_code}"
+        f"시작·종료가 같은 시각인 count 조회가 실패했습니다: {response.status_code}"
     )
     data = response.json()
     assert isinstance(data.get("count"), int) and data["count"] >= 0, (
@@ -542,8 +580,12 @@ def test_schedule_list_count_zero_returns_error_or_empty_list(
         headers=learner_headers,
         params={
             "classroom_id": classroom_id,
-            "dt_start_ge": start_at.isoformat(timespec="milliseconds").replace("+00:00", "Z"),
-            "dt_start_le": end_at.isoformat(timespec="milliseconds").replace("+00:00", "Z"),
+            "dt_start_ge": start_at.isoformat(timespec="milliseconds").replace(
+                "+00:00", "Z"
+            ),
+            "dt_start_le": end_at.isoformat(timespec="milliseconds").replace(
+                "+00:00", "Z"
+            ),
             "count": 0,
         },
     )
@@ -575,7 +617,9 @@ def _get_one_schedule_or_skip(api_base_url, classroom_id, learner_headers) -> di
             "count": 40,
         },
     )
-    assert response.status_code == 200, f"기준 일정 목록 조회 실패: {response.status_code}"
+    assert response.status_code == 200, (
+        f"기준 일정 목록 조회 실패: {response.status_code}"
+    )
     schedules = response.json()
     assert isinstance(schedules, list), "일정 목록 응답은 배열이어야 합니다."
     if not schedules:
@@ -591,8 +635,7 @@ def test_schedule_detail_returns_existing_schedule(
     learner_headers,
 ):
     """[CS-005] 일정 목록의 기존 일정은 상세 조회에서도 동일하게 반환되어야 한다."""
-    schedule = _get_one_schedule_or_skip(
-        api_base_url, classroom_id, learner_headers)
+    schedule = _get_one_schedule_or_skip(api_base_url, classroom_id, learner_headers)
     schedule_id = schedule.get("id")
     assert schedule_id, "기준 일정에 id가 없습니다."
 
@@ -602,10 +645,14 @@ def test_schedule_detail_returns_existing_schedule(
         params={"classroom_id": classroom_id},
     )
 
-    assert response.status_code == 200, f"기존 일정 상세 조회 실패: {response.status_code}"
+    assert response.status_code == 200, (
+        f"기존 일정 상세 조회 실패: {response.status_code}"
+    )
     detail = response.json()
     assert isinstance(detail, dict), "일정 상세 응답은 객체여야 합니다."
-    assert detail.get("id") == schedule_id, "목록에서 선택한 일정과 상세 응답의 id가 다릅니다."
+    assert detail.get("id") == schedule_id, (
+        "목록에서 선택한 일정과 상세 응답의 id가 다릅니다."
+    )
     for field in ("summary", "dt_start", "dt_end"):
         assert field in detail, f"일정 상세 응답에 {field} 필드가 없습니다."
 
@@ -661,13 +708,18 @@ def test_schedule_list_count_matches_count_endpoint(
         params=common_params,
     )
 
-    assert list_response.status_code == 200, f"일정 목록 조회 실패: {list_response.status_code}"
-    assert count_response.status_code == 200, f"일정 count 조회 실패: {count_response.status_code}"
+    assert list_response.status_code == 200, (
+        f"일정 목록 조회 실패: {list_response.status_code}"
+    )
+    assert count_response.status_code == 200, (
+        f"일정 count 조회 실패: {count_response.status_code}"
+    )
     schedules = list_response.json()
     count_data = count_response.json()
     assert isinstance(schedules, list), "일정 목록 응답은 배열이어야 합니다."
-    assert isinstance(count_data.get("count"),
-                      int), "count 응답의 count는 정수여야 합니다."
+    assert isinstance(count_data.get("count"), int), (
+        "count 응답의 count는 정수여야 합니다."
+    )
     assert len(schedules) == count_data["count"], (
         f"목록 건수({len(schedules)})와 count({count_data['count']})가 다릅니다."
     )
@@ -781,8 +833,12 @@ def test_learner_cannot_update_or_delete_qa_schedule(
             headers=educator_headers,
             params={
                 "classroom_id": classroom_id,
-                "dt_start_ge": candidate_start.isoformat(timespec="milliseconds").replace("+00:00", "Z"),
-                "dt_start_le": candidate_end.isoformat(timespec="milliseconds").replace("+00:00", "Z"),
+                "dt_start_ge": candidate_start.isoformat(
+                    timespec="milliseconds"
+                ).replace("+00:00", "Z"),
+                "dt_start_le": candidate_end.isoformat(timespec="milliseconds").replace(
+                    "+00:00", "Z"
+                ),
                 "count": 40,
             },
         )
@@ -797,7 +853,9 @@ def test_learner_cannot_update_or_delete_qa_schedule(
     if slot_start is None or slot_end is None:
         pytest.skip("향후 7일 안에 QA 임시 일정을 만들 빈 시간대를 찾지 못했습니다.")
 
-    original_summary = f"[QA-AUTO] learner-mutation-guard-{slot_start.strftime('%Y%m%d%H%M%S')}"
+    original_summary = (
+        f"[QA-AUTO] learner-mutation-guard-{slot_start.strftime('%Y%m%d%H%M%S')}"
+    )
     original_description = "[QA-AUTO] temporary permission-boundary test"
     schedule_id = None
 
@@ -805,7 +863,8 @@ def test_learner_cannot_update_or_delete_qa_schedule(
         print(f"\n[1/7] 교육자 - 임시 일정 생성 중...")
         print(f"      제목: {original_summary}")
         print(
-            f"      시간: {slot_start.strftime('%Y-%m-%d %H:%M')} ~ {slot_end.strftime('%H:%M')} (UTC)")
+            f"      시간: {slot_start.strftime('%Y-%m-%d %H:%M')} ~ {slot_end.strftime('%H:%M')} (UTC)"
+        )
         create_response = api_client.post(
             url=f"{api_base_url}/schedule",
             headers=educator_headers,
@@ -813,8 +872,12 @@ def test_learner_cannot_update_or_delete_qa_schedule(
                 "classroom_id": classroom_id,
                 "summary": original_summary,
                 "description": original_description,
-                "dt_start": slot_start.isoformat(timespec="milliseconds").replace("+00:00", "Z"),
-                "dt_end": slot_end.isoformat(timespec="milliseconds").replace("+00:00", "Z"),
+                "dt_start": slot_start.isoformat(timespec="milliseconds").replace(
+                    "+00:00", "Z"
+                ),
+                "dt_end": slot_end.isoformat(timespec="milliseconds").replace(
+                    "+00:00", "Z"
+                ),
             },
             confirmed=True,
         )
@@ -827,16 +890,23 @@ def test_learner_cannot_update_or_delete_qa_schedule(
             headers=educator_headers,
             params={
                 "classroom_id": classroom_id,
-                "dt_start_ge": (slot_start - timedelta(hours=1)).isoformat(timespec="milliseconds").replace("+00:00", "Z"),
-                "dt_start_le": (slot_end + timedelta(hours=1)).isoformat(timespec="milliseconds").replace("+00:00", "Z"),
+                "dt_start_ge": (slot_start - timedelta(hours=1))
+                .isoformat(timespec="milliseconds")
+                .replace("+00:00", "Z"),
+                "dt_start_le": (slot_end + timedelta(hours=1))
+                .isoformat(timespec="milliseconds")
+                .replace("+00:00", "Z"),
                 "count": 40,
             },
         )
         assert find_response.status_code == 200, (
             f"생성한 QA 임시 일정 목록 조회 실패: {find_response.status_code}"
         )
-        matches = [item for item in find_response.json(
-        ) if item.get("summary") == original_summary]
+        matches = [
+            item
+            for item in find_response.json()
+            if item.get("summary") == original_summary
+        ]
         assert len(matches) == 1, "생성한 QA 임시 일정을 정확히 하나 찾지 못했습니다."
         schedule_id = matches[0]["id"]
         print(f"      → schedule_id: {schedule_id}")
@@ -852,7 +922,8 @@ def test_learner_cannot_update_or_delete_qa_schedule(
             confirmed=True,
         )
         print(
-            f"      → PATCH 응답: HTTP {patch_response.status_code} ({'BLOCKED' if _has_permission_error(patch_response) else 'NOT BLOCKED!'})")
+            f"      → PATCH 응답: HTTP {patch_response.status_code} ({'BLOCKED' if _has_permission_error(patch_response) else 'NOT BLOCKED!'})"
+        )
         assert _has_permission_error(patch_response), (
             f"[보안 이슈] 학습자 PATCH가 차단되지 않았습니다: {patch_response.status_code}"
         )
@@ -865,7 +936,8 @@ def test_learner_cannot_update_or_delete_qa_schedule(
             confirmed=True,
         )
         print(
-            f"      → DELETE 응답: HTTP {delete_response.status_code} ({'BLOCKED' if _has_permission_error(delete_response) else 'NOT BLOCKED!'})")
+            f"      → DELETE 응답: HTTP {delete_response.status_code} ({'BLOCKED' if _has_permission_error(delete_response) else 'NOT BLOCKED!'})"
+        )
         assert _has_permission_error(delete_response), (
             f"[보안 이슈] 학습자 DELETE가 차단되지 않았습니다: {delete_response.status_code}"
         )
@@ -882,10 +954,12 @@ def test_learner_cannot_update_or_delete_qa_schedule(
         verified = verify_response.json()
         print(f"      → 제목 유지: {verified.get('summary')}")
         print(f"      → 설명 유지: {verified.get('description')}")
-        assert verified.get(
-            "summary") == original_summary, "[보안 이슈] 학습자 PATCH 시도 뒤 원본 제목이 변경되었습니다."
-        assert verified.get(
-            "description") == original_description, "[보안 이슈] 학습자 PATCH 시도 뒤 원본 설명이 변경되었습니다."
+        assert verified.get("summary") == original_summary, (
+            "[보안 이슈] 학습자 PATCH 시도 뒤 원본 제목이 변경되었습니다."
+        )
+        assert verified.get("description") == original_description, (
+            "[보안 이슈] 학습자 PATCH 시도 뒤 원본 설명이 변경되었습니다."
+        )
 
     finally:
         if schedule_id:
@@ -905,8 +979,12 @@ def test_learner_cannot_update_or_delete_qa_schedule(
                 headers=educator_headers,
                 params={
                     "classroom_id": classroom_id,
-                    "dt_start_ge": (slot_start - timedelta(hours=1)).isoformat(timespec="milliseconds").replace("+00:00", "Z"),
-                    "dt_start_le": (slot_end + timedelta(hours=1)).isoformat(timespec="milliseconds").replace("+00:00", "Z"),
+                    "dt_start_ge": (slot_start - timedelta(hours=1))
+                    .isoformat(timespec="milliseconds")
+                    .replace("+00:00", "Z"),
+                    "dt_start_le": (slot_end + timedelta(hours=1))
+                    .isoformat(timespec="milliseconds")
+                    .replace("+00:00", "Z"),
                     "count": 40,
                 },
             )
@@ -914,8 +992,7 @@ def test_learner_cannot_update_or_delete_qa_schedule(
                 f"[복구 확인 실패] 삭제 후 QA 일정 목록 조회 실패: {after_cleanup.status_code}"
             )
             assert not any(
-                item.get("summary") == original_summary
-                for item in after_cleanup.json()
+                item.get("summary") == original_summary for item in after_cleanup.json()
             ), "[복구 필요] 삭제 후에도 [QA-AUTO] 임시 일정이 남아 있습니다."
             print(f"      → [QA-AUTO] 임시 일정 미조회 확인 OK")
             print(f"\n[완료] CS-016 테스트 성공! 학습자 권한 차단 및 데이터 복구 완료!")

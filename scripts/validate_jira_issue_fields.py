@@ -16,7 +16,6 @@ from jira_issue_fields import (
 
 EXPECTED_TEST_TYPES = (
     "API",
-    "E2E",
     "Performance",
 )
 

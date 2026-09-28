@@ -2,7 +2,7 @@
 
 import pytest
 
-from part1_api_automation.tests.board.helpers import (
+from api.tests.board.helpers import (
     assert_rejected,
     assert_success,
 )
@@ -75,15 +75,10 @@ def test_cleanup_continues_after_failure_and_reports_all() -> None:
         raise RuntimeError("delete failed")
 
     registry.add(
-        key="later",
-        description="정상 정리",
-        callback=lambda: calls.append("ok"),
+        key="later", description="정상 정리", callback=lambda: calls.append("ok")
     )
-    registry.add(
-        key="failure",
-        description="실패 정리",
-        callback=fail,
-    )
+
+    registry.add(key="failure", description="실패 정리", callback=fail)
 
     with pytest.raises(CleanupError, match="실패 정리"):
         registry.run()

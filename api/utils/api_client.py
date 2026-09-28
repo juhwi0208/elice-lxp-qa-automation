@@ -16,12 +16,12 @@ from urllib.parse import urlparse
 
 import requests
 
-from part1_api_automation.utils.config import (
+from api.utils.config import (
     Config,
     configured_api_base_urls,
     require_service_base_url,
 )
-from part1_api_automation.utils.response import classify_server_error
+from api.utils.response import classify_server_error
 
 
 class AbortTestError(RuntimeError):
@@ -102,8 +102,7 @@ def _validate_target_url(url: str) -> None:
             "요청 URL에 쿼리나 프래그먼트를 직접 넣지 말고 params 인자를 사용하세요."
         )
     approved_hosts = {
-        urlparse(base_url).hostname.lower()
-        for base_url in configured_api_base_urls()
+        urlparse(base_url).hostname.lower() for base_url in configured_api_base_urls()
     }
     if parsed_target.hostname.lower() not in approved_hosts:
         raise UnsafeRequestError("요청 대상이 승인된 QA API 호스트와 다릅니다.")
@@ -355,4 +354,6 @@ def delete(
     Returns:
         requests.Response
     """
-    return _request("DELETE", url, headers, params=params, json=json, confirmed=confirmed)
+    return _request(
+        "DELETE", url, headers, params=params, json=json, confirmed=confirmed
+    )

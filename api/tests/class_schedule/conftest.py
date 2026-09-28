@@ -3,9 +3,9 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from part1_api_automation.utils import api_client
-from part1_api_automation.utils.config import is_mutating_test_allowed
-from part1_api_automation.utils.response import assert_http_status
+from api.utils import api_client
+from api.utils.config import is_mutating_test_allowed
+from api.utils.response import assert_http_status
 
 
 def _fmt(value: datetime) -> str:
@@ -23,13 +23,15 @@ def api_base_url(classroom_api_base_url) -> str:
 def qa_schedule(api_base_url, classroom_id, educator_headers):
     """
     class_schedule 테스트 전역에서 사용할 공용 QA 임시 일정을 생성하고 삭제한다.
-    
+
     - yield 전: 교육자 권한으로 임시 일정 1건 생성
     - yield 값: dict(id, summary, start_at, end_at)
     - yield 후: 교육자 권한으로 해당 일정 삭제 (성공/실패 무관)
     """
     if not is_mutating_test_allowed():
-        pytest.skip("데이터 생성이 필요한 테스트는 상태 변경이 허용된 환경에서만 실행됩니다.")
+        pytest.skip(
+            "데이터 생성이 필요한 테스트는 상태 변경이 허용된 환경에서만 실행됩니다."
+        )
 
     start_at = (datetime.now(UTC) + timedelta(days=7)).replace(
         hour=2, minute=0, second=0, microsecond=0
@@ -67,7 +69,12 @@ def qa_schedule(api_base_url, classroom_id, educator_headers):
     assert len(matches) == 1
     schedule_id = matches[0]["id"]
 
-    yield {"id": schedule_id, "summary": summary, "start_at": start_at, "end_at": end_at}
+    yield {
+        "id": schedule_id,
+        "summary": summary,
+        "start_at": start_at,
+        "end_at": end_at,
+    }
 
     # 복구
     api_client.delete(

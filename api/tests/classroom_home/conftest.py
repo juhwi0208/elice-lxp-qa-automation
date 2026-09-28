@@ -5,11 +5,11 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from part1_api_automation.tests.board.helpers import (
+from api.tests.board.helpers import (
     get_board_article_list,
     get_postable_board_id,
 )
-from part1_api_automation.utils.course_api import CourseApi
+from api.utils.course_api import CourseApi
 
 
 def _optional_int(name: str) -> int | None:

@@ -2,7 +2,7 @@
 
 import pytest
 
-from part1_api_automation.tests.board.helpers import (
+from api.tests.board.helpers import (
     article_edit_url,
     create_article,
     get_article,
@@ -10,8 +10,8 @@ from part1_api_automation.tests.board.helpers import (
     unique_title,
     valid_content,
 )
-from part1_api_automation.utils import api_client
-from part1_api_automation.utils.security import mask_sensitive_data
+from api.utils import api_client
+from api.utils.security import mask_sensitive_data
 
 
 def _edit_article(api_base_url, org_name_short, headers, payload):
@@ -141,7 +141,9 @@ def test_article_title_can_be_changed(  # BO-040
     response = _edit_article(api_base_url, org_name_short, learner_headers, payload)
     _assert_edit_success(response, board_article_id)
 
-    article = get_article(api_base_url, org_name_short, learner_headers, board_article_id)
+    article = get_article(
+        api_base_url, org_name_short, learner_headers, board_article_id
+    )
     assert article["title"] == changed_title
 
 
@@ -174,7 +176,9 @@ def test_article_title_accepts_128_characters(  # BO-042
     response = _edit_article(api_base_url, org_name_short, learner_headers, payload)
     _assert_edit_success(response, board_article_id)
 
-    article = get_article(api_base_url, org_name_short, learner_headers, board_article_id)
+    article = get_article(
+        api_base_url, org_name_short, learner_headers, board_article_id
+    )
     assert article["title"] == payload["title"]
     assert len(article["title"]) == 128
 
@@ -209,7 +213,9 @@ def test_article_content_can_be_changed(  # BO-044
     response = _edit_article(api_base_url, org_name_short, learner_headers, payload)
     _assert_edit_success(response, board_article_id)
 
-    article = get_article(api_base_url, org_name_short, learner_headers, board_article_id)
+    article = get_article(
+        api_base_url, org_name_short, learner_headers, board_article_id
+    )
     assert article["content"] == changed_content
 
 
@@ -242,7 +248,9 @@ def test_public_article_can_be_changed_to_secret(  # BO-046
 
     response = _edit_article(api_base_url, org_name_short, learner_headers, payload)
     _assert_edit_success(response, board_article_id)
-    article = get_article(api_base_url, org_name_short, learner_headers, board_article_id)
+    article = get_article(
+        api_base_url, org_name_short, learner_headers, board_article_id
+    )
     assert article["is_secret"] is True
 
 
@@ -275,7 +283,9 @@ def test_secret_article_can_be_changed_to_public(  # BO-047
 
     response = _edit_article(api_base_url, org_name_short, learner_headers, payload)
     _assert_edit_success(response, board_article_id)
-    article = get_article(api_base_url, org_name_short, learner_headers, board_article_id)
+    article = get_article(
+        api_base_url, org_name_short, learner_headers, board_article_id
+    )
     assert article["is_secret"] is False
 
 
@@ -309,7 +319,9 @@ def test_article_course_can_be_changed(  # BO-048
 
     response = _edit_article(api_base_url, org_name_short, learner_headers, payload)
     _assert_edit_success(response, board_article_id)
-    article = get_article(api_base_url, org_name_short, learner_headers, board_article_id)
+    article = get_article(
+        api_base_url, org_name_short, learner_headers, board_article_id
+    )
     assert article["course_id"] == course_id
 
 

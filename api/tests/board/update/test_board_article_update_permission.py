@@ -2,7 +2,7 @@
 
 import pytest
 
-from part1_api_automation.tests.board.helpers import (
+from api.tests.board.helpers import (
     article_edit_url,
     create_article,
     get_article,
@@ -10,8 +10,8 @@ from part1_api_automation.tests.board.helpers import (
     unique_title,
     valid_content,
 )
-from part1_api_automation.utils import api_client
-from part1_api_automation.utils.security import mask_sensitive_data
+from api.utils import api_client
+from api.utils.security import mask_sensitive_data
 
 
 def _post_edit(api_base_url, org_name_short, headers, payload):
@@ -27,7 +27,9 @@ def _post_edit(api_base_url, org_name_short, headers, payload):
 def _assert_rejected(response, expected_fail_code: str | None = None):
     """인증/권한 실패 응답을 검증한다."""
     if response.status_code != 200:
-        assert 400 <= response.status_code < 500, mask_sensitive_data(response.text)[:500]
+        assert 400 <= response.status_code < 500, mask_sensitive_data(response.text)[
+            :500
+        ]
         return
     body = response.json()
     assert body.get("_result", {}).get("status") == "fail", mask_sensitive_data(body)
@@ -63,7 +65,11 @@ def test_unauthenticated_article_update_is_rejected(  # BO-052
         "is_secret": "false",
     }
     article_id = create_article(
-        api_base_url, org_name_short, learner_headers, original, register_created_board_article
+        api_base_url,
+        org_name_short,
+        learner_headers,
+        original,
+        register_created_board_article,
     )
     headers = {"x-elice-org-name-short": org_name_short}
 
@@ -96,7 +102,11 @@ def test_invalid_sessionkey_article_update_is_rejected(  # BO-053
         "is_secret": "false",
     }
     article_id = create_article(
-        api_base_url, org_name_short, learner_headers, original, register_created_board_article
+        api_base_url,
+        org_name_short,
+        learner_headers,
+        original,
+        register_created_board_article,
     )
     invalid_headers = {
         "Authorization": "Bearer invalid-sessionkey-for-qa",
@@ -148,5 +158,7 @@ def test_learner_cannot_update_other_learner_article(  # BO-054
     )
     _assert_rejected(response, expected_fail_code="insufficient_permission")
 
-    article = get_article(api_base_url, org_name_short, other_learner_headers, article_id)
+    article = get_article(
+        api_base_url, org_name_short, other_learner_headers, article_id
+    )
     assert article["title"] == original["title"]

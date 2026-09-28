@@ -2,7 +2,7 @@
 
 import pytest
 
-from part1_api_automation.tests.board.helpers import (
+from api.tests.board.helpers import (
     create_article,
     get_article,
     get_board_article_list,

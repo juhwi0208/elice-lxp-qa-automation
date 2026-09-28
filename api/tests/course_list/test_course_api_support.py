@@ -6,8 +6,8 @@ from dataclasses import dataclass
 
 import pytest
 
-from part1_api_automation.utils import course_api
-from part1_api_automation.utils.course_api import CourseApi
+from api.utils import course_api
+from api.utils.course_api import CourseApi
 
 
 @dataclass

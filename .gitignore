@@ -13,7 +13,7 @@ build/
 .env
 
 # JMeter QA 계정 목록 (인증정보 포함, 절대 커밋 금지)
-part2_performance/accounts/
+performance/accounts/
 
 # 테스트 캐시 & 리포트
 .pytest_cache/
@@ -22,10 +22,8 @@ allure-results/
 allure-report/
 .coverage
 htmlcov/
-playwright-report/
 test-results/
 pytest-results/
-part3_e2e/.auth/
 trace.zip
 /artifacts/
 /jmeter.log

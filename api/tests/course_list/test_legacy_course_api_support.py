@@ -7,9 +7,9 @@ from typing import Any
 import pytest
 import requests
 
-from part1_api_automation.utils import api_client
-from part1_api_automation.utils.config import Config
-from part1_api_automation.utils.legacy_course_api import LegacyCourseApi
+from api.utils import api_client
+from api.utils.config import Config
+from api.utils.legacy_course_api import LegacyCourseApi
 
 
 class FakeResponse:
@@ -213,11 +213,26 @@ def test_mutation_paths_and_payloads(monkeypatch: pytest.MonkeyPatch) -> None:
     client.reset_test_by_self(3, {}, confirmed=True)
 
     assert [(call["url"], call["data"]) for call in calls] == [
-        ("https://dev-qatrack-api.dev.elicer.io/org/academy/track/course/add/", {"track_id": 1, "course_id": 2}),
-        ("https://dev-qatrack-api.dev.elicer.io/org/academy/track/course/delete/", {"track_id": 1, "course_id": 2}),
-        ("https://dev-qatrack-api.dev.elicer.io/org/academy/track/course/move/", {"track_id": 1, "order_no": 0, "new_order_no": 1}),
-        ("https://dev-qatrack-api.dev.elicer.io/org/academy/course/edit/", {"course_id": 2, "title": "course"}),
-        ("https://dev-qatrack-api.dev.elicer.io/org/academy/lecture/edit/", {"lecture_id": 3, "title": "lecture"}),
+        (
+            "https://dev-qatrack-api.dev.elicer.io/org/academy/track/course/add/",
+            {"track_id": 1, "course_id": 2},
+        ),
+        (
+            "https://dev-qatrack-api.dev.elicer.io/org/academy/track/course/delete/",
+            {"track_id": 1, "course_id": 2},
+        ),
+        (
+            "https://dev-qatrack-api.dev.elicer.io/org/academy/track/course/move/",
+            {"track_id": 1, "order_no": 0, "new_order_no": 1},
+        ),
+        (
+            "https://dev-qatrack-api.dev.elicer.io/org/academy/course/edit/",
+            {"course_id": 2, "title": "course"},
+        ),
+        (
+            "https://dev-qatrack-api.dev.elicer.io/org/academy/lecture/edit/",
+            {"lecture_id": 3, "title": "lecture"},
+        ),
         (
             "https://dev-qatrack-api.dev.elicer.io/org/academy/lecture_page/visibility/edit/",
             {"lecture_page_id": 4, "is_for_stats": True, "is_opened": False},
@@ -230,7 +245,10 @@ def test_mutation_paths_and_payloads(monkeypatch: pytest.MonkeyPatch) -> None:
             "https://dev-qatrack-api.dev.elicer.io/org/academy/material_quiz/response/reset/",
             None,
         ),
-        ("https://dev-qatrack-api.dev.elicer.io/org/academy/lecture/test/reset/by_self/", {"lecture_id": 3}),
+        (
+            "https://dev-qatrack-api.dev.elicer.io/org/academy/lecture/test/reset/by_self/",
+            {"lecture_id": 3},
+        ),
     ]
     assert calls[-2]["method"] == "GET"
     assert calls[-2]["params"] == {"material_quiz_id": 5, "user_id": 7}

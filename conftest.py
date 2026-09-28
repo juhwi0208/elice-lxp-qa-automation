@@ -14,7 +14,7 @@ def _is_api_test(request: pytest.FixtureRequest) -> bool:
     path = getattr(request.node, "path", None)
     if path is None:
         return False
-    return "part1_api_automation" in path.parts
+    return "api" in path.parts
 
 
 @pytest.fixture(autouse=True)
@@ -28,7 +28,7 @@ def isolate_api_runtime_state(request: pytest.FixtureRequest) -> Iterator[None]:
         yield
         return
 
-    from part1_api_automation.utils import api_client
+    from api.utils import api_client
 
     api_client.reset_safety_state()
     try:

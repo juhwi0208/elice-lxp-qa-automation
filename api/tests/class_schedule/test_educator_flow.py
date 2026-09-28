@@ -3,11 +3,11 @@ from datetime import UTC, datetime, timedelta
 import pytest
 import uuid
 
-from part1_api_automation.utils.api_client import AbortTestError
-from part1_api_automation.utils.config import is_mutating_test_allowed
-from part1_api_automation.utils import api_client
-from part1_api_automation.utils.security import mask_sensitive_data
-from part1_api_automation.utils.response import assert_http_status
+from api.utils.api_client import AbortTestError
+from api.utils.config import is_mutating_test_allowed
+from api.utils import api_client
+from api.utils.security import mask_sensitive_data
+from api.utils.response import assert_http_status
 
 
 def _fmt(value: datetime) -> str:

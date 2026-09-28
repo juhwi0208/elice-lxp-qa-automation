@@ -8,8 +8,8 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from part1_api_automation.utils import api_client
-from part1_api_automation.utils.response import assert_http_status
+from api.utils import api_client
+from api.utils.response import assert_http_status
 
 
 @pytest.mark.read_only

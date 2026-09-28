@@ -7,8 +7,8 @@ import os
 
 import pytest
 
-from part1_api_automation.utils.legacy_course_api import LegacyCourseApi
-from part1_api_automation.utils.response import assert_api_success
+from api.utils.legacy_course_api import LegacyCourseApi
+from api.utils.response import assert_api_success
 from test_support.cleanup import CleanupRegistry
 
 
@@ -85,9 +85,7 @@ def _snapshot_restore_fields(
 ) -> dict:
     """변경 대상 필드의 원래 값을 안전한 자동 원복 payload로 만든다."""
     missing_keys = [key for key in patch if key not in before]
-    assert not missing_keys, (
-        f"{env_name}의 필드가 조회 응답에 없습니다: {missing_keys}"
-    )
+    assert not missing_keys, f"{env_name}의 필드가 조회 응답에 없습니다: {missing_keys}"
 
     null_keys = [key for key in patch if before[key] is None]
     assert not null_keys, (
@@ -149,7 +147,9 @@ def test_tc086_educator_adds_track_course_and_cleanup_restores_it(
 ) -> None:
     """TC86: 과목 추가 결과를 확인하고 종료 시 추가 과목을 삭제한다."""
     add_course_id = _positive_env_or_skip("LXP_TRACK_ADD_COURSE_ID")
-    before_ids = _course_ids(_track_courses(legacy_course_api, track_id, educator_headers))
+    before_ids = _course_ids(
+        _track_courses(legacy_course_api, track_id, educator_headers)
+    )
     if add_course_id in before_ids:
         pytest.skip("LXP_TRACK_ADD_COURSE_ID는 대상 트랙에 미등록된 과목이어야 합니다.")
 
@@ -166,9 +166,10 @@ def test_tc086_educator_adds_track_course_and_cleanup_restores_it(
             confirmed=True,
         )
         assert_api_success(cleanup, expected_api_status_code=200)
-        assert _course_ids(
-            _track_courses(legacy_course_api, track_id, educator_headers)
-        ) == before_ids
+        assert (
+            _course_ids(_track_courses(legacy_course_api, track_id, educator_headers))
+            == before_ids
+        )
 
     cleanup_registry.add(
         key=f"track:{track_id}:course:{add_course_id}",
@@ -184,7 +185,9 @@ def test_tc086_educator_adds_track_course_and_cleanup_restores_it(
     )
     assert_api_success(response, expected_api_status_code=200)
 
-    after_ids = _course_ids(_track_courses(legacy_course_api, track_id, educator_headers))
+    after_ids = _course_ids(
+        _track_courses(legacy_course_api, track_id, educator_headers)
+    )
     assert after_ids.count(add_course_id) == 1
     assert all(course_id in after_ids for course_id in before_ids)
 
@@ -199,7 +202,9 @@ def test_tc087_educator_moves_track_course_and_restores_order(
     track_id: int,
 ) -> None:
     """TC87: 과목 순서를 한 칸 이동하고 테스트 종료 시 원래 순서로 복원한다."""
-    before_ids = _course_ids(_track_courses(legacy_course_api, track_id, educator_headers))
+    before_ids = _course_ids(
+        _track_courses(legacy_course_api, track_id, educator_headers)
+    )
     if len(before_ids) < 2:
         pytest.skip("TC87은 과목이 2개 이상인 QA 트랙이 필요합니다.")
 
@@ -220,9 +225,10 @@ def test_tc087_educator_moves_track_course_and_restores_order(
             )
             assert_api_success(cleanup, expected_api_status_code=200)
             current_ids.insert(target_index, current_ids.pop(current_index))
-        assert _course_ids(
-            _track_courses(legacy_course_api, track_id, educator_headers)
-        ) == before_ids
+        assert (
+            _course_ids(_track_courses(legacy_course_api, track_id, educator_headers))
+            == before_ids
+        )
 
     cleanup_registry.add(
         key=f"track:{track_id}:order",
@@ -239,7 +245,9 @@ def test_tc087_educator_moves_track_course_and_restores_order(
     )
     assert_api_success(response, expected_api_status_code=200)
 
-    after_ids = _course_ids(_track_courses(legacy_course_api, track_id, educator_headers))
+    after_ids = _course_ids(
+        _track_courses(legacy_course_api, track_id, educator_headers)
+    )
     assert after_ids[:2] == [before_ids[1], before_ids[0]]
     assert sorted(after_ids) == sorted(before_ids)
 
@@ -450,7 +458,10 @@ def test_tc091_learner_submits_quiz_response_and_cleanup_resets_it(
     answer = os.getenv("LXP_QUIZ_ANSWER", "").strip()
     if not answer:
         pytest.skip("TC91은 LXP_QUIZ_ANSWER가 필요합니다.")
-    if os.getenv("LXP_ALLOW_IRREVERSIBLE_TEST_RESET", "false").strip().lower() != "true":
+    if (
+        os.getenv("LXP_ALLOW_IRREVERSIBLE_TEST_RESET", "false").strip().lower()
+        != "true"
+    ):
         pytest.skip(
             "TC91 cleanup은 학습자 응답을 초기화하므로 "
             "LXP_ALLOW_IRREVERSIBLE_TEST_RESET=true가 필요합니다."
@@ -568,7 +579,10 @@ def test_tc092_learner_resets_own_test_admission(
     legacy_course_api: LegacyCourseApi,
 ) -> None:
     """TC92: 폐기 가능한 QA 응시 이력만 명시적 승인 후 초기화한다."""
-    if os.getenv("LXP_ALLOW_IRREVERSIBLE_TEST_RESET", "false").strip().lower() != "true":
+    if (
+        os.getenv("LXP_ALLOW_IRREVERSIBLE_TEST_RESET", "false").strip().lower()
+        != "true"
+    ):
         pytest.skip("TC92는 LXP_ALLOW_IRREVERSIBLE_TEST_RESET=true가 필요합니다.")
 
     before = assert_api_success(

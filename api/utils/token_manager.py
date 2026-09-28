@@ -19,7 +19,7 @@ import os
 
 from dotenv import load_dotenv
 
-from part1_api_automation.utils import api_client
+from api.utils import api_client
 
 
 load_dotenv()
@@ -256,20 +256,14 @@ def get_other_learner_token() -> str:
 
 def learner_auth_header() -> dict:
     """학습자 Bearer 인증 헤더를 반환한다."""
-    return RedactedAuthHeaders(
-        {"Authorization": f"Bearer {get_learner_token()}"}
-    )
+    return RedactedAuthHeaders({"Authorization": f"Bearer {get_learner_token()}"})
 
 
 def educator_auth_header() -> dict:
     """교육자 Bearer 인증 헤더를 반환한다."""
-    return RedactedAuthHeaders(
-        {"Authorization": f"Bearer {get_educator_token()}"}
-    )
+    return RedactedAuthHeaders({"Authorization": f"Bearer {get_educator_token()}"})
 
 
 def other_learner_auth_header() -> dict:
     """두 번째 학습자 Bearer 인증 헤더를 반환한다."""
-    return RedactedAuthHeaders(
-        {"Authorization": f"Bearer {get_other_learner_token()}"}
-    )
+    return RedactedAuthHeaders({"Authorization": f"Bearer {get_other_learner_token()}"})

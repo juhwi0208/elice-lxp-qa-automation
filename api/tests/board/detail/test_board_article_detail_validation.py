@@ -2,11 +2,11 @@
 
 import pytest
 
-from part1_api_automation.tests.board.helpers import (
+from api.tests.board.helpers import (
     article_get_url,
     assert_article_detail_rejected,
 )
-from part1_api_automation.utils import api_client
+from api.utils import api_client
 
 
 @pytest.mark.auth

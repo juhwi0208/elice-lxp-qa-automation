@@ -64,7 +64,7 @@
 from dataclasses import dataclass
 from http import HTTPStatus
 from typing import Any, Dict, Optional
-from part1_api_automation.utils.security import mask_sensitive_data
+from api.utils.security import mask_sensitive_data
 
 import requests
 
@@ -99,9 +99,7 @@ class ErrorExpectation:
             if api_status < 400 or api_status > 599:
                 raise ValueError("API 논리 오류 상태 코드는 400~599 범위여야 합니다.")
             if http_status != HTTPStatus.OK:
-                raise ValueError(
-                    "LXP 논리 오류의 HTTP 상태 코드는 200이어야 합니다."
-                )
+                raise ValueError("LXP 논리 오류의 HTTP 상태 코드는 200이어야 합니다.")
         elif http_status < 400 or http_status > 599:
             raise ValueError(
                 "HTTP 오류 기대값은 400~599 범위여야 합니다. "

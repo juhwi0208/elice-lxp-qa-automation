@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 import requests
 
-from part1_api_automation.utils import api_client
+from api.utils import api_client
 
 
 @dataclass(frozen=True)

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import re
+
 from typing import Any
 
 from jira_client import JiraApiError, JiraClient
@@ -38,19 +38,6 @@ def area_from_api_tc_id(tc_id: str) -> str:
         raise JiraApiError(f"Jira 영역 매핑이 없는 API TC prefix입니다: {tc_id}")
 
     return prefix
-
-
-def area_from_e2e_linked_tc(linked_tc: str) -> str:
-    """E2E 시트의 연계 TC 문자열에서 Jira 기능 영역을 해석한다."""
-    areas = {
-        match.group(1)
-        for match in re.finditer(r"(?<![A-Z0-9])(CL|CS|BO|CH)(?=[-_\s]|\d|$)", (linked_tc or "").upper())
-    }
-    if len(areas) != 1:
-        raise JiraApiError(
-            f"E2E 연계 TC에서 Jira 영역을 하나로 결정할 수 없습니다: {linked_tc!r}"
-        )
-    return areas.pop()
 
 
 def _norm(value: Any) -> str:

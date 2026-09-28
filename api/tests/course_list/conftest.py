@@ -6,9 +6,9 @@ import os
 
 import pytest
 
-from part1_api_automation.utils.course_api import CourseApi
-from part1_api_automation.utils.legacy_course_api import LegacyCourseApi
-from part1_api_automation.utils.response import assert_http_status
+from api.utils.course_api import CourseApi
+from api.utils.legacy_course_api import LegacyCourseApi
+from api.utils.response import assert_http_status
 
 
 @pytest.fixture(scope="session")
@@ -152,7 +152,9 @@ def classroom_courses(
 
 @pytest.fixture
 def sandbox_course(classroom_courses: list[dict], course_name: str) -> dict:
-    matches = [course for course in classroom_courses if course.get("title") == course_name]
+    matches = [
+        course for course in classroom_courses if course.get("title") == course_name
+    ]
     assert len(matches) == 1, (
         f"{course_name!r} 과목은 QA 강의실 목록에 정확히 한 번 존재해야 합니다. "
         f"실제 개수: {len(matches)}"

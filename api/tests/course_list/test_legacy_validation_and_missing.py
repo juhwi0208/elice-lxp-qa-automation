@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from part1_api_automation.utils.legacy_course_api import LegacyCourseApi
-from part1_api_automation.utils.response import assert_error_response, logic_error
+from api.utils.legacy_course_api import LegacyCourseApi
+from api.utils.response import assert_error_response, logic_error
 
 
 def _assert_fields_absent(body: dict, *field_names: str) -> None:

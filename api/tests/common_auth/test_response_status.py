@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from part1_api_automation.utils.response import (
+from api.utils.response import (
     ErrorExpectation,
     assert_api_failure,
     assert_api_success,

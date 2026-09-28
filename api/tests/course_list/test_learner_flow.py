@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from part1_api_automation.utils.legacy_course_api import LegacyCourseApi
-from part1_api_automation.utils.response import assert_api_success
+from api.utils.legacy_course_api import LegacyCourseApi
+from api.utils.response import assert_api_success
 
 
 @pytest.mark.read_only
@@ -74,9 +74,9 @@ def test_tc078_learner_lists_course_lectures(
     lecture_ids = [lecture.get("id") for lecture in lectures]
     assert all(isinstance(lecture_id, int) for lecture_id in lecture_ids)
     assert len(lecture_ids) == len(set(lecture_ids)), "수업 목록에 중복 ID가 있습니다."
-    assert any(
-        lecture.get("title") == test_lecture_name for lecture in lectures
-    ), f"대상 과목의 {test_lecture_name!r} 수업이 목록에 없습니다."
+    assert any(lecture.get("title") == test_lecture_name for lecture in lectures), (
+        f"대상 과목의 {test_lecture_name!r} 수업이 목록에 없습니다."
+    )
 
 
 @pytest.mark.read_only

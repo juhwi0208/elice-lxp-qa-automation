@@ -61,7 +61,7 @@ pipeline {
                     fi
 
                     .venv/bin/python -m pip install --upgrade pip
-                    .venv/bin/python -m pip install -r part1_api_automation/requirements.txt
+                    .venv/bin/python -m pip install -r api/requirements.txt
                 '''
             }
         }
@@ -164,7 +164,7 @@ pipeline {
                     sh '''
                         mkdir -p pytest-results
 
-                        .venv/bin/python -m pytest part1_api_automation/tests \
+                        .venv/bin/python -m pytest api/tests \
                             --reruns 1 \
                             --reruns-delay 2 \
                             --alluredir=allure-results/api \

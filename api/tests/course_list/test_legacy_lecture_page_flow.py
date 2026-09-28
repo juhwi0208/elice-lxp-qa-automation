@@ -2,8 +2,8 @@
 
 import pytest
 
-from part1_api_automation.utils.legacy_course_api import LegacyCourseApi
-from part1_api_automation.utils.response import assert_api_success
+from api.utils.legacy_course_api import LegacyCourseApi
+from api.utils.response import assert_api_success
 
 
 @pytest.mark.read_only

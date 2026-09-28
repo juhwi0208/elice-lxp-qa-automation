@@ -7,14 +7,14 @@ from typing import Any
 import pytest
 import requests
 
-from part1_api_automation.utils import api_client, token_manager
-from part1_api_automation.utils.security import mask_sensitive_data
-from part1_api_automation.utils.config import (
+from api.utils import api_client, token_manager
+from api.utils.security import mask_sensitive_data
+from api.utils.config import (
     Config,
     require_service_base_url,
     validate_base_url,
 )
-from part1_api_automation.utils.response import assert_http_status
+from api.utils.response import assert_http_status
 
 
 class FakeResponse:
@@ -295,7 +295,9 @@ def test_5xx_latches_abort_and_prevents_later_network_calls(
 
     monkeypatch.setattr(requests, "request", fake_request)
 
-    with pytest.raises(api_client.AbortTestError, match="service_unavailable") as exc_info:
+    with pytest.raises(
+        api_client.AbortTestError, match="service_unavailable"
+    ) as exc_info:
         api_client.get(url, {})
     assert exc_info.value.status_code == 503
     assert exc_info.value.error_code == "service_unavailable"

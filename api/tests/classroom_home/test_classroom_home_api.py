@@ -4,9 +4,9 @@ from datetime import UTC, datetime
 
 import pytest
 
-from part1_api_automation.tests.board.helpers import get_article
-from part1_api_automation.utils import api_client
-from part1_api_automation.utils.response import (
+from api.tests.board.helpers import get_article
+from api.utils import api_client
+from api.utils.response import (
     assert_conflict,
     assert_forbidden,
     assert_http_status,
@@ -97,7 +97,9 @@ def test_tc055_classroom_home_course_ids_are_unique(learner_course_api, classroo
     """TC055: 클래스 홈 과목 위젯에 같은 과목이 중복 노출되지 않는다."""
     courses = _get_classroom_courses(learner_course_api, classroom_id)
     ids = [_course_identifier(item) for item in courses]
-    assert len(ids) == len(set(ids)), "클래스 홈 과목 위젯에 중복 과목이 반환되었습니다."
+    assert len(ids) == len(set(ids)), (
+        "클래스 홈 과목 위젯에 중복 과목이 반환되었습니다."
+    )
 
 
 @pytest.mark.read_only

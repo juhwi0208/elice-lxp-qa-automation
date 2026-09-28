@@ -6,8 +6,8 @@ from collections.abc import Callable
 from typing import BinaryIO
 from uuid import uuid4
 
-from part1_api_automation.utils import api_client
-from part1_api_automation.utils.security import mask_sensitive_data
+from api.utils import api_client
+from api.utils.security import mask_sensitive_data
 
 
 FILE_SIZE_LIMIT = 31_457_280  # 30MB

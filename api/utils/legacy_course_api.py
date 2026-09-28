@@ -8,7 +8,7 @@ from dataclasses import dataclass
 
 import requests
 
-from part1_api_automation.utils import api_client
+from api.utils import api_client
 
 
 _ORG_PATTERN = re.compile(r"^[a-z0-9][a-z0-9_-]*$")
@@ -23,7 +23,9 @@ class LegacyCourseApi:
 
     def __post_init__(self) -> None:
         if not _ORG_PATTERN.fullmatch(self.org_name_short):
-            raise ValueError("기관 식별자는 URL 경로에 사용할 수 있는 형식이어야 합니다.")
+            raise ValueError(
+                "기관 식별자는 URL 경로에 사용할 수 있는 형식이어야 합니다."
+            )
 
     def _url(self, path: str) -> str:
         return f"{self.base_url}/org/{self.org_name_short}/{path.strip('/')}/"

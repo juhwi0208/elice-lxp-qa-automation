@@ -2,8 +2,8 @@
 
 import pytest
 
-from part1_api_automation.utils.legacy_course_api import LegacyCourseApi
-from part1_api_automation.utils.response import (
+from api.utils.legacy_course_api import LegacyCourseApi
+from api.utils.response import (
     assert_error_response,
     logic_error,
 )

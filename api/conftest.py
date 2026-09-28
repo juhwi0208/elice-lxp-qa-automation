@@ -5,9 +5,9 @@ import os
 import pytest
 from dotenv import load_dotenv
 
-from part1_api_automation.utils.api_client import AbortTestError
-from part1_api_automation.utils.config import require_base_url, require_service_base_url
-from part1_api_automation.utils.token_manager import (
+from api.utils.api_client import AbortTestError
+from api.utils.config import require_base_url, require_service_base_url
+from api.utils.token_manager import (
     educator_auth_header,
     learner_auth_header,
     other_learner_auth_header,
