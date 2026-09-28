@@ -2,7 +2,7 @@
 <jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
   <hashTree>
     <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="QA Lecture Test Low-Load Cycle">
-      <stringProp name="TestPlan.comments">QA6 Part2 허용 시나리오 전용. Dev/academy/course 727/lecture 1581. Thread별 CSV 계정 1회 고정 할당 → 로그인 1회 → course 조회 → enter → start → stop → reset, 동작 사이 3~5초 pacing, loop 최대 3, 5xx 즉시 중단.</stringProp>
+      <stringProp name="TestPlan.comments">QA6 Performance 허용 시나리오 전용. Dev/academy/course 727/lecture 1581. Thread별 CSV 계정 1회 고정 할당 → 로그인 1회 → course 조회 → enter → start → stop → reset, 동작 사이 3~5초 pacing, loop 최대 3, 5xx 즉시 중단.</stringProp>
       <boolProp name="TestPlan.tearDown_on_shutdown">true</boolProp>
       <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
         <collectionProp name="Arguments.arguments" />

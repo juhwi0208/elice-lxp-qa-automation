@@ -1,4 +1,4 @@
-"""현재 QA6 Part2 저부하 테스트의 하드 리밋과 JMX 안전장치를 검증한다."""
+"""현재 저부하 테스트의 하드 리밋과 JMX 안전장치를 검증한다."""
 
 from __future__ import annotations
 import argparse, json

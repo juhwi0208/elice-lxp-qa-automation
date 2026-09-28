@@ -76,8 +76,8 @@ def build(results_root: Path, output_dir: Path) -> tuple[Path, Path]:
     html_path = output_dir / "comparison.html"
     html_path.write_text(
         f"""<!doctype html><html lang='ko'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'>
-<title>QA6 Part2 단계별 비교</title><style>body{{font-family:system-ui;margin:32px;background:#f7f8fa;color:#17191c}}main{{max-width:1400px;margin:auto}}table{{width:100%;border-collapse:collapse;background:white}}th,td{{padding:10px;border-bottom:1px solid #e7e9ed;text-align:right}}th:first-child,td:first-child{{text-align:left}}th{{background:#eef1f4}}.pass{{color:#146b2d;font-weight:700}}.fail{{color:#a51d1d;font-weight:700}}.invalid{{color:#8a5a00;font-weight:700}}a{{color:#2457d6}}</style></head>
-<body><main><h1>QA6 Part2 부하 비교</h1><p>실행별 Latency, Response Time, TPS, Error Rate를 비교합니다. 특정 단계만 재실행한 결과도 포함할 수 있습니다.</p>
+<title>QA6 부하테스트 단계별 비교</title><style>body{{font-family:system-ui;margin:32px;background:#f7f8fa;color:#17191c}}main{{max-width:1400px;margin:auto}}table{{width:100%;border-collapse:collapse;background:white}}th,td{{padding:10px;border-bottom:1px solid #e7e9ed;text-align:right}}th:first-child,td:first-child{{text-align:left}}th{{background:#eef1f4}}.pass{{color:#146b2d;font-weight:700}}.fail{{color:#a51d1d;font-weight:700}}.invalid{{color:#8a5a00;font-weight:700}}a{{color:#2457d6}}</style></head>
+<body><main><h1>QA6 부하테스트 부하 비교</h1><p>실행별 Latency, Response Time, TPS, Error Rate를 비교합니다. 특정 단계만 재실행한 결과도 포함할 수 있습니다.</p>
 <table><thead><tr><th>Status</th><th>Complete</th><th>Users</th><th>Loops</th><th>Samples</th><th>Avg Latency</th><th>P95 Latency</th><th>P99 Latency</th><th>Avg Response</th><th>TPS</th><th>Error(%)</th><th>Run</th></tr></thead><tbody>{"".join(table_rows)}</tbody></table></main></body></html>""",
         encoding="utf-8",
     )

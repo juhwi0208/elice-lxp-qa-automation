@@ -1,4 +1,4 @@
-"""QA6 Part2 시험 응시 시나리오를 하드 리밋 안에서만 JMeter로 실행한다."""
+"""QA6 부하테스트 - 시험 응시 시나리오를 하드 리밋 안에서만 JMeter로 실행한다."""
 
 from __future__ import annotations
 
@@ -397,7 +397,7 @@ def main() -> int:
         str(report_dir),
     ]
 
-    print("[QA6 Part2 APPROVED LOW-LOAD]")
+    print("[QA6 Performance Test APPROVED LOW-LOAD]")
     print(f"Target : {APPROVED_WEB_TARGET}")
     print(f"API    : https://{APPROVED_API_HOST}/org/{APPROVED_ORG}/...")
     print(f"Course : {APPROVED_COURSE_ID}, Lecture: {APPROVED_LECTURE_ID}")

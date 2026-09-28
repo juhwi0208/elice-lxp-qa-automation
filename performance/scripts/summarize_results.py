@@ -1,4 +1,4 @@
-"""JMeter Dashboard를 QA6 Part2 기준으로 요약하고 실행 완전성까지 검증한다."""
+"""JMeter Dashboard를 요약하고 실행 완전성까지 검증한다."""
 
 from __future__ import annotations
 
@@ -76,7 +76,9 @@ def _scenario_metrics_from_jtl(jtl_path: Path) -> dict[str, Any]:
         reader = csv.DictReader(file)
         required = {"label", "timeStamp", "elapsed", "Latency", "success"}
         if not reader.fieldnames or not required.issubset(reader.fieldnames):
-            raise ValueError("JTL에 label/timeStamp/elapsed/Latency/success 컬럼이 필요합니다.")
+            raise ValueError(
+                "JTL에 label/timeStamp/elapsed/Latency/success 컬럼이 필요합니다."
+            )
 
         for row in reader:
             if row.get("label") not in SCENARIO_LABELS:
@@ -86,7 +88,9 @@ def _scenario_metrics_from_jtl(jtl_path: Path) -> dict[str, Any]:
                 elapsed = int(row["elapsed"])
                 latency = int(row["Latency"])
             except (TypeError, ValueError) as exc:
-                raise ValueError("JTL 성능지표 컬럼에 숫자가 아닌 값이 있습니다.") from exc
+                raise ValueError(
+                    "JTL 성능지표 컬럼에 숫자가 아닌 값이 있습니다."
+                ) from exc
             start_times.append(ts)
             end_times.append(ts + elapsed)
             elapsed_values.append(elapsed)
@@ -118,7 +122,8 @@ def _validate_jtl_integrity(jtl_path: Path, users: int, loops: int) -> dict[str,
         return {
             "complete": False,
             "errors": [f"JTL 파일이 없습니다: {jtl_path}"],
-            "expected_total_samples": users * (len(ONCE_LABELS) + len(SCENARIO_LABELS) * loops),
+            "expected_total_samples": users
+            * (len(ONCE_LABELS) + len(SCENARIO_LABELS) * loops),
             "actual_total_samples": None,
             "scenario_expected_per_label": users * loops,
         }
@@ -134,7 +139,8 @@ def _validate_jtl_integrity(jtl_path: Path, users: int, loops: int) -> dict[str,
             return {
                 "complete": False,
                 "errors": ["JTL에 label/threadName/success 컬럼이 없습니다."],
-                "expected_total_samples": users * (len(ONCE_LABELS) + len(SCENARIO_LABELS) * loops),
+                "expected_total_samples": users
+                * (len(ONCE_LABELS) + len(SCENARIO_LABELS) * loops),
                 "actual_total_samples": None,
                 "scenario_expected_per_label": users * loops,
             }
@@ -156,7 +162,9 @@ def _validate_jtl_integrity(jtl_path: Path, users: int, loops: int) -> dict[str,
             errors.append(f"{label}: expected {users} samples, actual {actual}")
         threads = label_threads[label]
         if len(threads) != users:
-            errors.append(f"{label}: expected {users} unique threads, actual {len(threads)}")
+            errors.append(
+                f"{label}: expected {users} unique threads, actual {len(threads)}"
+            )
         bad = {name: count for name, count in threads.items() if count != 1}
         if bad:
             errors.append(f"{label}: thread별 1회 실행 위반 {bad}")
@@ -164,10 +172,14 @@ def _validate_jtl_integrity(jtl_path: Path, users: int, loops: int) -> dict[str,
     for label in SCENARIO_LABELS:
         actual = label_counts[label]
         if actual != expected_per_scenario:
-            errors.append(f"{label}: expected {expected_per_scenario} samples, actual {actual}")
+            errors.append(
+                f"{label}: expected {expected_per_scenario} samples, actual {actual}"
+            )
         threads = label_threads[label]
         if len(threads) != users:
-            errors.append(f"{label}: expected {users} unique threads, actual {len(threads)}")
+            errors.append(
+                f"{label}: expected {users} unique threads, actual {len(threads)}"
+            )
         bad = {name: count for name, count in threads.items() if count != loops}
         if bad:
             errors.append(f"{label}: thread별 {loops}회 실행 위반 {bad}")
@@ -219,7 +231,10 @@ def extract_summary(
 
     if not execution_complete:
         status = "INVALID"
-    elif performance["error_percent"] < SUCCESS_ERROR_PCT and performance["average_latency_ms"] < SUCCESS_AVG_MS:
+    elif (
+        performance["error_percent"] < SUCCESS_ERROR_PCT
+        and performance["average_latency_ms"] < SUCCESS_AVG_MS
+    ):
         status = "PASS"
     else:
         status = "FAIL"
@@ -272,10 +287,21 @@ def _fmt(value: Any) -> str:
 
 def _write_summary_csv(path: Path, summary: dict[str, Any]) -> None:
     fieldnames = [
-        "status", "execution_complete", "users", "loops", "samples",
-        "expected_total_samples", "actual_total_samples", "average_latency_ms",
-        "p95_latency_ms", "p99_latency_ms", "average_response_ms",
-        "p95_response_ms", "p99_response_ms", "throughput_rps", "error_percent",
+        "status",
+        "execution_complete",
+        "users",
+        "loops",
+        "samples",
+        "expected_total_samples",
+        "actual_total_samples",
+        "average_latency_ms",
+        "p95_latency_ms",
+        "p99_latency_ms",
+        "average_response_ms",
+        "p95_response_ms",
+        "p99_response_ms",
+        "throughput_rps",
+        "error_percent",
     ]
     with path.open("w", encoding="utf-8-sig", newline="") as file:
         writer = csv.DictWriter(file, fieldnames=fieldnames)
@@ -285,8 +311,14 @@ def _write_summary_csv(path: Path, summary: dict[str, Any]) -> None:
 
 def _write_transactions_csv(path: Path, summary: dict[str, Any]) -> None:
     fieldnames = [
-        "label", "samples", "average_ms", "p90_ms", "p95_ms", "p99_ms",
-        "throughput_rps", "error_percent",
+        "label",
+        "samples",
+        "average_ms",
+        "p90_ms",
+        "p95_ms",
+        "p99_ms",
+        "throughput_rps",
+        "error_percent",
     ]
     with path.open("w", encoding="utf-8-sig", newline="") as file:
         writer = csv.DictWriter(file, fieldnames=fieldnames)
@@ -294,7 +326,9 @@ def _write_transactions_csv(path: Path, summary: dict[str, Any]) -> None:
         writer.writerows(summary["transactions"])
 
 
-def _write_summary_html(path: Path, summary: dict[str, Any], dashboard_relative: str = "index.html") -> None:
+def _write_summary_html(
+    path: Path, summary: dict[str, Any], dashboard_relative: str = "index.html"
+) -> None:
     status_class = "pass" if summary["status"] == "PASS" else "fail"
     rows = "\n".join(
         "<tr>"
@@ -310,12 +344,14 @@ def _write_summary_html(path: Path, summary: dict[str, Any], dashboard_relative:
     )
     integrity_note = "실행 완전성 검증: 정상"
     if not summary["execution_complete"]:
-        escaped = "<br>".join(html.escape(message) for message in summary["integrity_errors"])
+        escaped = "<br>".join(
+            html.escape(message) for message in summary["integrity_errors"]
+        )
         integrity_note = f"<strong>실행 불완전(INVALID)</strong><br>{escaped}"
 
     doc = f"""<!doctype html>
 <html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>QA6 Part2 Load Test Summary</title>
+<title>QA6 Performance Load Test Summary</title>
 <style>
 body{{font-family:system-ui,-apple-system,Segoe UI,sans-serif;margin:32px;line-height:1.45;background:#f7f8fa;color:#17191c}}
 main{{max-width:1180px;margin:auto}} .cards{{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:20px 0}}
@@ -324,14 +360,14 @@ main{{max-width:1180px;margin:auto}} .cards{{display:grid;grid-template-columns:
 table{{width:100%;border-collapse:collapse;background:white;border-radius:12px;overflow:hidden}} th,td{{padding:11px 12px;border-bottom:1px solid #eceff2;text-align:right}} th:first-child,td:first-child{{text-align:left}} th{{background:#f0f2f5}}
 a{{color:#2457d6}} .note{{background:#fff8dc;border:1px solid #f0df98;padding:14px;border-radius:10px;margin:16px 0}}
 </style></head><body><main>
-<h1>QA6 Part2 시험 응시 저부하 테스트</h1>
-<p><span class="badge {status_class}">{summary['status']}</span> &nbsp; {summary['users']} users / {summary['loops']} loop(s)</p>
+<h1>QA6 Performance Test 시험 응시 저부하 테스트</h1>
+<p><span class="badge {status_class}">{summary["status"]}</span> &nbsp; {summary["users"]} users / {summary["loops"]} loop(s)</p>
 <div class="cards">
-<div class="card">평균 Latency<div class="value">{_fmt(summary['average_latency_ms'])} ms</div></div>
-<div class="card">P95<div class="value">{_fmt(summary['p95_latency_ms'])} ms</div></div>
-<div class="card">P99<div class="value">{_fmt(summary['p99_latency_ms'])} ms</div></div>
-<div class="card">TPS<div class="value">{_fmt(summary['throughput_rps'])}</div></div>
-<div class="card">Error Rate<div class="value">{_fmt(summary['error_percent'])}%</div></div>
+<div class="card">평균 Latency<div class="value">{_fmt(summary["average_latency_ms"])} ms</div></div>
+<div class="card">P95<div class="value">{_fmt(summary["p95_latency_ms"])} ms</div></div>
+<div class="card">P99<div class="value">{_fmt(summary["p99_latency_ms"])} ms</div></div>
+<div class="card">TPS<div class="value">{_fmt(summary["throughput_rps"])}</div></div>
+<div class="card">Error Rate<div class="value">{_fmt(summary["error_percent"])}%</div></div>
 </div>
 <div class="note">성공 기준: users×loops 실행 완전성 충족, Error Rate &lt; 1%, 평균 Latency &lt; 5,000ms.</div>
 <div class="note">{integrity_note}</div>
@@ -342,7 +378,9 @@ a{{color:#2457d6}} .note{{background:#fff8dc;border:1px solid #f0df98;padding:14
     path.write_text(doc, encoding="utf-8")
 
 
-def summarize_report(report_dir: Path, users: int, loops: int, *, run_dir: Path | None = None) -> dict[str, Any]:
+def summarize_report(
+    report_dir: Path, users: int, loops: int, *, run_dir: Path | None = None
+) -> dict[str, Any]:
     """리포트에서 요약을 만들고 JTL이 있으면 실행 완전성을 강제 검증한다."""
     statistics_path = report_dir / "statistics.json"
     if not statistics_path.is_file():
@@ -392,7 +430,9 @@ def _build_parser() -> argparse.ArgumentParser:
 
 def main() -> int:
     args = _build_parser().parse_args()
-    summary = summarize_report(args.report_dir, args.users, args.loops, run_dir=args.run_dir)
+    summary = summarize_report(
+        args.report_dir, args.users, args.loops, run_dir=args.run_dir
+    )
     print(json.dumps(summary, ensure_ascii=False))
     return 0 if summary["status"] == "PASS" else 2
 
